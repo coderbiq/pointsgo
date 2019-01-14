@@ -39,23 +39,23 @@ func (a account) Consume(points common.Points) error {
 }
 
 func (a *account) Apply(event model.DomainEvent) {
-	switch event.Name() {
-	case common.AccountCreatedEvent:
-		a.Identity = event.AggregateID().(model.LongID)
-		a.OwnerIdentity = event.(common.AccountCreated).OwnerID()
+	switch e := event.(type) {
+	case common.AccountCreated:
+		a.Identity = e.AggregateID().(model.LongID)
+		a.OwnerIdentity = e.OwnerID()
 		a.DepPoints = common.Points(0)
 		a.ConPoints = common.Points(0)
 		a.Created = time.Now()
 		a.Updated = time.Now()
 		break
-	case common.AccountDepositedEvent:
-		points := event.(common.AccountDeposited).Points()
+	case common.AccountDeposited:
+		points := e.Points()
 		a.CurPoints = a.CurPoints.Inc(points)
 		a.DepPoints = a.DepPoints.Inc(points)
 		a.Updated = event.CreatedAt()
 		break
-	case common.AccountConsumedEvent:
-		points := event.(common.AccountConsumed).Points()
+	case common.AccountConsumed:
+		points := e.Points()
 		a.CurPoints = a.CurPoints.Dec(points)
 		a.ConPoints = a.ConPoints.Inc(points)
 		a.Updated = time.Now()
