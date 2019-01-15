@@ -64,14 +64,14 @@ func RegisterAccount(ownerID model.StringID) Account {
 	return a
 }
 
-func (a account) Deposit(points common.Points) {
+func (a *account) Deposit(points common.Points) {
 	a.CurPoints = a.CurPoints.Inc(points)
 	a.DepPoints = a.DepPoints.Inc(points)
 	a.Updated = time.Now()
 	a.events.RecordThan(common.OccurDeposited(a.Identity, points))
 }
 
-func (a account) Consume(points common.Points) error {
+func (a *account) Consume(points common.Points) error {
 	if !a.CurPoints.GreaterThan(points) {
 		return common.PointsInsufficientError{
 			Current: a.CurPoints,
