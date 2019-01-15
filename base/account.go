@@ -17,6 +17,13 @@ type Account interface {
 	UpdatedAt() time.Time
 }
 
+// AccountRepository 定义积分账户资源库
+type AccountRepository interface {
+	Save(account Account) error
+	Get(accountID model.LongID) (Account, error)
+	FindByOwner(ownerID model.LongID) ([]Account, error)
+}
+
 // AccountReadModel 积分展示读模型的实现
 type AccountReadModel struct {
 	DepPoints common.Points `json:"depositedPoints"`
@@ -83,4 +90,8 @@ func (a *account) Consume(points common.Points) error {
 	a.Updated = time.Now()
 	a.events.RecordThan(common.OccurConsumed(a.Identity, points))
 	return nil
+}
+
+func (a *account) CommitEvents(publishers ...model.EventPublisher) {
+	a.events.CommitToPublisher(publishers...)
 }
