@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package app;
+
+message RegisterInput {
+    string customerId = 1;
+}
+
+message RegisterResult {
+    int64 accountId = 1;
+}
+
+message DepositInput {
+    int64 accountId = 1;
+    uint32 points = 2;
+}
+
+message DepositResult {
+    uint32 curPoints = 1;
+    uint32 depositedPoints = 2;
+}
+
+message ConsumeInput {
+    int64 accountId = 1;
+    uint32 points = 2;
+}
+
+message ConsumeResult {
+    uint32 curPoints = 1;
+    uint32 consumedPoints = 2;
+}
