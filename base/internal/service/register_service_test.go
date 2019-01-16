@@ -1,12 +1,13 @@
-package base_test
+package service_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/coderbiq/pointsgo/base"
 	"github.com/coderbiq/pointsgo/base/internal/mocks"
+	"github.com/coderbiq/pointsgo/base/internal/model"
+	"github.com/coderbiq/pointsgo/base/internal/service"
 	"github.com/coderbiq/pointsgo/common"
 	"github.com/golang/mock/gomock"
 )
@@ -19,7 +20,7 @@ func TestRegisterService(t *testing.T) {
 
 	assert := assert.New(t)
 	repo := mocks.NewMockAccountRepository(ctrl)
-	repo.EXPECT().Save(gomock.Any()).Times(1).Do(func(account base.Account) {
+	repo.EXPECT().Save(gomock.Any()).Times(1).Do(func(account model.Account) {
 		assert.Equal(ownerId, account.OwnerID().String())
 	})
 	eventBus := mocks.NewMockEventPublisher(ctrl)
@@ -31,6 +32,6 @@ func TestRegisterService(t *testing.T) {
 	infra.EXPECT().AccountRepo().Return(repo)
 	infra.EXPECT().EventBus().Return(eventBus)
 
-	services := base.NewServices(infra)
+	services := service.NewAppServices(infra)
 	services.RegisterApp().Register(ownerId)
 }

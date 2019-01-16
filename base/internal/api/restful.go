@@ -1,17 +1,18 @@
-package base
+package api
 
 import (
 	"errors"
 	"net/http"
 
 	"github.com/coderbiq/pointsgo/app"
+	"github.com/coderbiq/pointsgo/base/internal/service"
 	"github.com/emicklei/go-restful"
 )
 
 type restHandlerFunc func(*restful.Request, *restful.Response) error
 
 // WebService 返回 restful 服务
-func WebService(services AppServices) *restful.WebService {
+func WebService(services service.AppServices) *restful.WebService {
 
 	ws := new(restful.WebService)
 	ws.Consumes(restful.MIME_JSON).Produces(restful.MIME_JSON)

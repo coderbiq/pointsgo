@@ -1,8 +1,9 @@
-package base
+package service
 
 import (
 	"github.com/coderbiq/dgo/base/devent"
 	"github.com/coderbiq/dgo/base/vo"
+	"github.com/coderbiq/pointsgo/base/internal/model"
 	"github.com/coderbiq/pointsgo/common"
 )
 
@@ -15,7 +16,7 @@ type (
 	}
 	// Infra 定义基础设施服务容器
 	Infra interface {
-		AccountRepo() AccountRepository
+		AccountRepo() model.AccountRepository
 		EventBus() devent.EventPublisher
 	}
 	// RegisterService 定义积分账户注册服务
@@ -39,8 +40,8 @@ type services struct {
 	infra Infra
 }
 
-// NewServices 创建应用服务容器
-func NewServices(infra Infra) AppServices {
+// NewAppServices 创建应用服务容器
+func NewAppServices(infra Infra) AppServices {
 	return &services{infra: infra}
 }
 
@@ -65,19 +66,19 @@ func (ss *services) ConsumeApp() ConsumeService {
 }
 
 type registerService struct {
-	repo     AccountRepository
+	repo     model.AccountRepository
 	eventBus devent.EventPublisher
 }
 
 func (service registerService) Register(customerID string) (int64, error) {
-	account := RegisterAccount(vo.StringID(customerID))
+	account := model.RegisterAccount(vo.StringID(customerID))
 	service.repo.Save(account)
 	account.(devent.EventProducer).CommitEvents(service.eventBus)
 	return account.ID().Int64(), nil
 }
 
 type depositService struct {
-	repo     AccountRepository
+	repo     model.AccountRepository
 	eventBus devent.EventPublisher
 }
 
@@ -93,7 +94,7 @@ func (service depositService) Deposit(accountID int64, points uint) (uint, uint,
 }
 
 type consumeService struct {
-	repo     AccountRepository
+	repo     model.AccountRepository
 	eventBus devent.EventPublisher
 }
 

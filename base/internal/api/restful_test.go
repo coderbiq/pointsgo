@@ -1,4 +1,4 @@
-package base_test
+package api_test
 
 import (
 	"testing"
@@ -6,7 +6,7 @@ import (
 	"github.com/golang/mock/gomock"
 
 	"github.com/coderbiq/pointsgo/app"
-	"github.com/coderbiq/pointsgo/base"
+	"github.com/coderbiq/pointsgo/base/internal/api"
 	"github.com/coderbiq/pointsgo/base/internal/mocks"
 	"github.com/stretchr/testify/suite"
 )
@@ -20,5 +20,5 @@ func TestRestfulRegister(t *testing.T) {
 	services := mocks.NewMockAppServices(ctrl)
 	services.EXPECT().RegisterApp().Return(register)
 
-	suite.Run(t, app.NewRegisterRestfulTestSuite(base.WebService(services)))
+	suite.Run(t, app.NewRegisterRestfulTestSuite(api.WebService(services)))
 }
