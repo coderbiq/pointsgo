@@ -1,6 +1,12 @@
 package common
 
-import "github.com/coderbiq/dgo/base/vo"
+import (
+	"fmt"
+	"time"
+
+	"github.com/coderbiq/dgo/base/devent"
+	"github.com/coderbiq/dgo/base/vo"
+)
 
 type (
 	// Points 定义积分点数据模型
@@ -14,7 +20,81 @@ type (
 		Deposit(points Points)
 		Consume(points Points) error
 	}
+
+	// AccountLog 定义积分账户的变更记录模型
+	AccountLog interface {
+		ID() vo.Identity
+		AccountID() vo.Identity
+		Action() string
+		Desc() string
+		CreatedAt() time.Time
+	}
 )
+
+// AccountLogFromEvent 根据积分账户的领域模型生成账户变更记录
+func AccountLogFromEvent(event devent.DomainEvent) AccountLog {
+	switch e := event.(type) {
+	case AccountCreated:
+		return AccountActionLog{
+			Identity:        vo.IDGenerator.LongID(),
+			AccountIdentity: e.AggregateID().(vo.LongID),
+			ActionName:      "创建账户",
+			Describe:        "会员申请开通积分账户",
+			Created:         e.CreatedAt(),
+		}
+	case AccountDeposited:
+		return AccountActionLog{
+			Identity:        vo.IDGenerator.LongID(),
+			AccountIdentity: e.AggregateID().(vo.LongID),
+			ActionName:      "积分充值",
+			Describe:        fmt.Sprintf("会员为积分账户充值 %d 积分", e.Points()),
+			Created:         e.CreatedAt(),
+		}
+	case AccountConsumed:
+		return AccountActionLog{
+			Identity:        vo.IDGenerator.LongID(),
+			AccountIdentity: e.AggregateID().(vo.LongID),
+			ActionName:      "积分消费",
+			Describe:        fmt.Sprintf("会员消费积分账户 %d 积分", e.Points()),
+			Created:         e.CreatedAt(),
+		}
+	}
+	return nil
+}
+
+// AccountActionLog 对 AccountLog 的实现
+type AccountActionLog struct {
+	Identity        vo.LongID
+	AccountIdentity vo.LongID
+	ActionName      string
+	Describe        string
+	Created         time.Time
+}
+
+// ID 返回变更记录的唯一标识
+func (log AccountActionLog) ID() vo.Identity {
+	return log.Identity
+}
+
+// AccountID 返回变更记录所属积分账户标识
+func (log AccountActionLog) AccountID() vo.Identity {
+	return log.AccountIdentity
+}
+
+// Action 返回变更记录的操作名称
+func (log AccountActionLog) Action() string {
+	return log.ActionName
+}
+
+// Desc 返回变更记录的详细描述
+func (log AccountActionLog) Desc() string {
+	return log.Describe
+}
+
+// CreatedAt 返回变更记录的创建时间
+func (log AccountActionLog) CreatedAt() time.Time {
+	return log.Created
+}
 
 // BaseAccount 实现基本的积分账户模型
 type BaseAccount struct {
