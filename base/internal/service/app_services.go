@@ -17,7 +17,7 @@ type (
 	// Infra 定义基础设施服务容器
 	Infra interface {
 		AccountRepo() model.AccountRepository
-		EventBus() devent.EventPublisher
+		EventBus() devent.EventBus
 	}
 	// RegisterService 定义积分账户注册服务
 	RegisterService interface {

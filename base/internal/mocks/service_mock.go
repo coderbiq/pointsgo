@@ -48,9 +48,9 @@ func (mr *MockInfraMockRecorder) AccountRepo() *gomock.Call {
 }
 
 // EventBus mocks base method
-func (m *MockInfra) EventBus() devent.EventPublisher {
+func (m *MockInfra) EventBus() devent.EventBus {
 	ret := m.ctrl.Call(m, "EventBus")
-	ret0, _ := ret[0].(devent.EventPublisher)
+	ret0, _ := ret[0].(devent.EventBus)
 	return ret0
 }
 
