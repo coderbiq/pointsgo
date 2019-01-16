@@ -1,6 +1,8 @@
 package model
 
 import (
+	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/coderbiq/dgo/base/devent"
@@ -16,6 +18,7 @@ type Account interface {
 	ConsumedPoints() common.Points
 	CreatedAt() time.Time
 	UpdatedAt() time.Time
+	Version() uint
 }
 
 // AccountRepository 定义积分账户资源库
@@ -23,6 +26,65 @@ type AccountRepository interface {
 	Save(account Account) error
 	Get(accountID vo.LongID) (Account, error)
 	FindByOwner(ownerID vo.LongID) ([]Account, error)
+}
+
+type account struct {
+	common.BaseAccount
+	AccountReadModel
+	events *devent.EventRecorder
+}
+
+// RegisterAccount 为指定会员标识的会员注册一个新的积分账户
+func RegisterAccount(ownerID vo.StringID) Account {
+	a := &account{events: devent.NewEventRecorder(0)}
+	a.Identity = vo.IDGenerator.LongID()
+	a.OwnerIdentity = ownerID
+	a.DepPoints = common.Points(0)
+	a.ConPoints = common.Points(0)
+	a.Created = time.Now()
+	a.Updated = time.Now()
+	a.events.RecordThan(common.OccurAccountCreated(a.Identity, ownerID))
+	return a
+}
+
+// AccountFromData 根据原始数据重建积分账户模型
+// 资源库可以利用这个方法将从数据库获取到的数据还原为聚合模型
+func AccountFromData(data []byte, version uint) Account {
+	a := &account{events: devent.NewEventRecorder(version)}
+	if err := json.Unmarshal(data, a); err != nil {
+		panic(errors.New("根据数据还原积分账户异常:" + err.Error()))
+	}
+	return a
+}
+
+func (a *account) Deposit(points common.Points) {
+	a.CurPoints = a.CurPoints.Inc(points)
+	a.DepPoints = a.DepPoints.Inc(points)
+	a.Updated = time.Now()
+	a.events.RecordThan(common.OccurDeposited(a.Identity, points))
+}
+
+func (a *account) Consume(points common.Points) error {
+	if !a.CurPoints.GreaterThan(points) {
+		return common.PointsInsufficientError{
+			Current: a.CurPoints,
+			Expect:  points,
+		}
+	}
+	a.CurPoints = a.CurPoints.Dec(points)
+	a.ConPoints = a.ConPoints.Inc(points)
+	a.Updated = time.Now()
+	a.events.RecordThan(common.OccurConsumed(a.Identity, points))
+	return nil
+}
+
+// Version 返回积分账户聚合的当前版本
+func (a *account) Version() uint {
+	return a.events.LastVersion()
+}
+
+func (a *account) CommitEvents(publishers ...devent.EventPublisher) {
+	a.events.CommitToPublisher(publishers...)
 }
 
 // AccountReadModel 积分展示读模型的实现
@@ -51,48 +113,4 @@ func (arm AccountReadModel) CreatedAt() time.Time {
 // UpdatedAt 返回积分账户最后变更时间
 func (arm AccountReadModel) UpdatedAt() time.Time {
 	return arm.Updated
-}
-
-type account struct {
-	common.BaseAccount
-	AccountReadModel
-	events *devent.EventRecorder
-}
-
-// RegisterAccount 为指定会员标识的会员注册一个新的积分账户
-func RegisterAccount(ownerID vo.StringID) Account {
-	a := &account{events: devent.NewEventRecorder(0)}
-	a.Identity = vo.IDGenerator.LongID()
-	a.OwnerIdentity = ownerID
-	a.DepPoints = common.Points(0)
-	a.ConPoints = common.Points(0)
-	a.Created = time.Now()
-	a.Updated = time.Now()
-	a.events.RecordThan(common.OccurAccountCreated(a.Identity, ownerID))
-	return a
-}
-
-func (a *account) Deposit(points common.Points) {
-	a.CurPoints = a.CurPoints.Inc(points)
-	a.DepPoints = a.DepPoints.Inc(points)
-	a.Updated = time.Now()
-	a.events.RecordThan(common.OccurDeposited(a.Identity, points))
-}
-
-func (a *account) Consume(points common.Points) error {
-	if !a.CurPoints.GreaterThan(points) {
-		return common.PointsInsufficientError{
-			Current: a.CurPoints,
-			Expect:  points,
-		}
-	}
-	a.CurPoints = a.CurPoints.Dec(points)
-	a.ConPoints = a.ConPoints.Inc(points)
-	a.Updated = time.Now()
-	a.events.RecordThan(common.OccurConsumed(a.Identity, points))
-	return nil
-}
-
-func (a *account) CommitEvents(publishers ...devent.EventPublisher) {
-	a.events.CommitToPublisher(publishers...)
 }

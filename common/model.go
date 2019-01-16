@@ -18,9 +18,9 @@ type (
 
 // BaseAccount 实现基本的积分账户模型
 type BaseAccount struct {
-	Identity      vo.LongID
-	OwnerIdentity vo.StringID
-	CurPoints     Points
+	Identity      vo.LongID   `json:"id"`
+	OwnerIdentity vo.StringID `json:"ownerId"`
+	CurPoints     Points      `json:"points"`
 }
 
 // ID 返回积分账户标识
