@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/coderbiq/pointsgo/app"
 	"github.com/coderbiq/pointsgo/base/internal/service"
@@ -29,6 +30,27 @@ func WebService(services service.AppServices) *restful.WebService {
 			}
 			result := app.RegisterResult{AccountId: accountID}
 			resp.WriteEntity(result)
+			return nil
+		})))
+
+	ws.Route(ws.POST(app.DepositRoute).To(restHandler(
+		func(req *restful.Request, resp *restful.Response) error {
+			accountID, err := strconv.ParseInt(req.PathParameter("accountId"), 10, 0)
+			if err != nil {
+				return errors.New("请提供正确的积分账户标识")
+			}
+			input := new(app.DepositInput)
+			if err := req.ReadEntity(input); err != nil {
+				return errors.New("请求信息错误")
+			}
+			curPoints, deposited, err := services.DepositApp().Deposit(accountID, uint(input.Points))
+			if err != nil {
+				return err
+			}
+			resp.WriteEntity(app.DepositResult{
+				CurPoints:       uint32(curPoints),
+				DepositedPoints: uint32(deposited),
+			})
 			return nil
 		})))
 
