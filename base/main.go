@@ -38,8 +38,11 @@ func main() {
 		AccountId: regOut.AccountId,
 		Points:    uint32(100),
 	}
-	data = post(depURL, depIn)
-	fmt.Println(string(data))
+	post(depURL, depIn)
+
+	conURL := strings.Replace(app.ConsumeRoute, "{accountId}", strconv.FormatInt(regOut.AccountId, 10), 1)
+	conIn := app.ConsumeInput{AccountId: regOut.AccountId, Points: uint32(40)}
+	post(conURL, conIn)
 
 	cancel()
 }
@@ -76,6 +79,12 @@ func printLogs(eventBus devent.EventBus) {
 		devent.EventConsumerFunc(func(event devent.DomainEvent) {
 			e := event.(common.AccountDeposited)
 			fmt.Printf("积分账户充值：账户标识 %s 充值额度 %d \n",
+				e.AggregateID().String(), int(e.Points()))
+		}))
+	eventBus.Listen(common.AccountConsumedEvent,
+		devent.EventConsumerFunc(func(event devent.DomainEvent) {
+			e := event.(common.AccountConsumed)
+			fmt.Printf("积分消费：账户标识 %s 消费额度 %d \n",
 				e.AggregateID().String(), int(e.Points()))
 		}))
 }
