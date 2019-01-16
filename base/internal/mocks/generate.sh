@@ -5,7 +5,7 @@ mockgen -destination service_mock.go \
    github.com/coderbiq/pointsgo/base \
    AppServices,Infra,RegisterService,DepositService,ConsumeService,AccountRepository
 
-mockgen -destination dgo_mock.go \
+mockgen -destination dgo_event.go \
    -package mocks \
-   github.com/coderbiq/dgo/model \
+   github.com/coderbiq/dgo/base/devent \
    EventPublisher

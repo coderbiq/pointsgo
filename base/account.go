@@ -3,7 +3,8 @@ package base
 import (
 	"time"
 
-	"github.com/coderbiq/dgo/model"
+	"github.com/coderbiq/dgo/base/devent"
+	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/pointsgo/common"
 )
 
@@ -20,8 +21,8 @@ type Account interface {
 // AccountRepository 定义积分账户资源库
 type AccountRepository interface {
 	Save(account Account) error
-	Get(accountID model.LongID) (Account, error)
-	FindByOwner(ownerID model.LongID) ([]Account, error)
+	Get(accountID vo.LongID) (Account, error)
+	FindByOwner(ownerID vo.LongID) ([]Account, error)
 }
 
 // AccountReadModel 积分展示读模型的实现
@@ -55,13 +56,13 @@ func (arm AccountReadModel) UpdatedAt() time.Time {
 type account struct {
 	common.BaseAccount
 	AccountReadModel
-	events *model.EventRecorder
+	events *devent.EventRecorder
 }
 
 // RegisterAccount 为指定会员标识的会员注册一个新的积分账户
-func RegisterAccount(ownerID model.StringID) Account {
-	a := &account{events: model.NewEventRecorder(0)}
-	a.Identity = model.IDGenerator.LongID()
+func RegisterAccount(ownerID vo.StringID) Account {
+	a := &account{events: devent.NewEventRecorder(0)}
+	a.Identity = vo.IDGenerator.LongID()
 	a.OwnerIdentity = ownerID
 	a.DepPoints = common.Points(0)
 	a.ConPoints = common.Points(0)
@@ -92,6 +93,6 @@ func (a *account) Consume(points common.Points) error {
 	return nil
 }
 
-func (a *account) CommitEvents(publishers ...model.EventPublisher) {
+func (a *account) CommitEvents(publishers ...devent.EventPublisher) {
 	a.events.CommitToPublisher(publishers...)
 }

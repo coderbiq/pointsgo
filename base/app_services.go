@@ -1,7 +1,8 @@
 package base
 
 import (
-	"github.com/coderbiq/dgo/model"
+	"github.com/coderbiq/dgo/base/devent"
+	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/pointsgo/common"
 )
 
@@ -15,7 +16,7 @@ type (
 	// Infra 定义基础设施服务容器
 	Infra interface {
 		AccountRepo() AccountRepository
-		EventBus() model.EventPublisher
+		EventBus() devent.EventPublisher
 	}
 	// RegisterService 定义积分账户注册服务
 	RegisterService interface {
@@ -65,39 +66,39 @@ func (ss *services) ConsumeApp() ConsumeService {
 
 type registerService struct {
 	repo     AccountRepository
-	eventBus model.EventPublisher
+	eventBus devent.EventPublisher
 }
 
 func (service registerService) Register(customerID string) (int64, error) {
-	account := RegisterAccount(model.StringID(customerID))
+	account := RegisterAccount(vo.StringID(customerID))
 	service.repo.Save(account)
-	account.(model.EventProducer).CommitEvents(service.eventBus)
+	account.(devent.EventProducer).CommitEvents(service.eventBus)
 	return account.ID().Int64(), nil
 }
 
 type depositService struct {
 	repo     AccountRepository
-	eventBus model.EventPublisher
+	eventBus devent.EventPublisher
 }
 
 func (service depositService) Deposit(accountID int64, points uint) (uint, uint, error) {
-	account, err := service.repo.Get(model.LongID(accountID))
+	account, err := service.repo.Get(vo.LongID(accountID))
 	if err != nil {
 		return 0, 0, err
 	}
 	account.Deposit(common.Points(points))
 	service.repo.Save(account)
-	account.(model.EventProducer).CommitEvents(service.eventBus)
+	account.(devent.EventProducer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.DepositedPoints()), nil
 }
 
 type consumeService struct {
 	repo     AccountRepository
-	eventBus model.EventPublisher
+	eventBus devent.EventPublisher
 }
 
 func (service consumeService) Consume(accountID int64, points uint) (uint, uint, error) {
-	account, err := service.repo.Get(model.LongID(accountID))
+	account, err := service.repo.Get(vo.LongID(accountID))
 	if err != nil {
 		return 0, 0, err
 	}
@@ -105,6 +106,6 @@ func (service consumeService) Consume(accountID int64, points uint) (uint, uint,
 		return 0, 0, err
 	}
 	service.repo.Save(account)
-	account.(model.EventProducer).CommitEvents(service.eventBus)
+	account.(devent.EventProducer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.ConsumedPoints()), nil
 }

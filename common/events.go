@@ -3,7 +3,8 @@ package common
 import (
 	"encoding/json"
 
-	"github.com/coderbiq/dgo/model"
+	"github.com/coderbiq/dgo/base/devent"
+	"github.com/coderbiq/dgo/base/vo"
 )
 
 const (
@@ -18,30 +19,30 @@ const (
 type (
 	// AccountCreated 积分账户创建事件信息
 	AccountCreated interface {
-		model.DomainEvent
-		OwnerID() model.StringID
+		devent.DomainEvent
+		OwnerID() vo.StringID
 	}
 	// AccountDeposited 积分账户充值事件信息
 	AccountDeposited interface {
-		model.DomainEvent
+		devent.DomainEvent
 		Points() Points
 	}
 	// AccountConsumed 积分账户消费事件信息
 	AccountConsumed interface {
-		model.DomainEvent
+		devent.DomainEvent
 		Points() Points
 	}
 )
 
 type accountCreated struct {
-	model.AggregateChanged
-	AccountID     model.LongID   `json:"aggregateId"`
-	OwnerIdentity model.StringID `json:"ownerId"`
+	devent.AggregateChanged
+	AccountID     vo.LongID   `json:"aggregateId"`
+	OwnerIdentity vo.StringID `json:"ownerId"`
 }
 
 // OccurAccountCreated 返回一个新的积分账户创建成功事件
-func OccurAccountCreated(aid model.LongID, ownerID model.StringID) AccountCreated {
-	return model.OccurAggregateChanged(AccountCreatedEvent, &accountCreated{
+func OccurAccountCreated(aid vo.LongID, ownerID vo.StringID) AccountCreated {
+	return devent.OccurAggregateChanged(AccountCreatedEvent, &accountCreated{
 		AccountID:     aid,
 		OwnerIdentity: ownerID}).(AccountCreated)
 }
@@ -55,28 +56,28 @@ func AccountCreatedFromJSON(data []byte) (AccountCreated, error) {
 	return e, nil
 }
 
-func (p accountCreated) AggregateID() model.Identity {
+func (p accountCreated) AggregateID() vo.Identity {
 	return p.AccountID
 }
 
-func (p accountCreated) OwnerID() model.StringID {
+func (p accountCreated) OwnerID() vo.StringID {
 	return p.OwnerIdentity
 }
 
 type accountDeposited struct {
-	model.AggregateChanged
-	AccountID model.LongID
+	devent.AggregateChanged
+	AccountID vo.LongID
 	points    Points
 }
 
 // OccurDeposited 返回一个积分账户充值成功事件
-func OccurDeposited(aid model.LongID, points Points) AccountDeposited {
-	return model.OccurAggregateChanged(
+func OccurDeposited(aid vo.LongID, points Points) AccountDeposited {
+	return devent.OccurAggregateChanged(
 		AccountDepositedEvent,
 		&accountDeposited{AccountID: aid, points: points}).(AccountDeposited)
 }
 
-func (p accountDeposited) AggregateID() model.Identity {
+func (p accountDeposited) AggregateID() vo.Identity {
 	return p.AccountID
 }
 
@@ -85,19 +86,19 @@ func (p accountDeposited) Points() Points {
 }
 
 type accountConsumed struct {
-	model.AggregateChanged
-	AccountID model.LongID
+	devent.AggregateChanged
+	AccountID vo.LongID
 	points    Points
 }
 
 // OccurConsumed 返回一个积分账户消费成功事件
-func OccurConsumed(aid model.LongID, points Points) AccountConsumed {
-	return model.OccurAggregateChanged(
+func OccurConsumed(aid vo.LongID, points Points) AccountConsumed {
+	return devent.OccurAggregateChanged(
 		AccountConsumedEvent,
 		&accountConsumed{AccountID: aid, points: points}).(AccountConsumed)
 }
 
-func (p accountConsumed) AggregateID() model.Identity {
+func (p accountConsumed) AggregateID() vo.Identity {
 	return p.AccountID
 }
 

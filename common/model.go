@@ -1,6 +1,6 @@
 package common
 
-import "github.com/coderbiq/dgo/model"
+import "github.com/coderbiq/dgo/base/vo"
 
 type (
 	// Points 定义积分点数据模型
@@ -8,8 +8,8 @@ type (
 
 	// Account 定义积分账户聚合基础的外观
 	Account interface {
-		ID() model.LongID
-		OwnerID() model.StringID
+		ID() vo.LongID
+		OwnerID() vo.StringID
 		Points() Points
 		Deposit(points Points)
 		Consume(points Points) error
@@ -18,18 +18,18 @@ type (
 
 // BaseAccount 实现基本的积分账户模型
 type BaseAccount struct {
-	Identity      model.LongID
-	OwnerIdentity model.StringID
+	Identity      vo.LongID
+	OwnerIdentity vo.StringID
 	CurPoints     Points
 }
 
 // ID 返回积分账户标识
-func (a BaseAccount) ID() model.LongID {
+func (a BaseAccount) ID() vo.LongID {
 	return a.Identity
 }
 
 // OwnerID 返回积分账户所属的会员标识
-func (a BaseAccount) OwnerID() model.StringID {
+func (a BaseAccount) OwnerID() vo.StringID {
 	return a.OwnerIdentity
 }
 

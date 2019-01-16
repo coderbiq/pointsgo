@@ -3,7 +3,7 @@ package base
 import (
 	"errors"
 
-	"github.com/coderbiq/dgo/model"
+	"github.com/coderbiq/dgo/base/vo"
 )
 
 type inMemoryAccountRepo struct {
@@ -22,7 +22,7 @@ func (repo *inMemoryAccountRepo) Save(account Account) error {
 	return nil
 }
 
-func (repo inMemoryAccountRepo) Get(accountID model.LongID) (Account, error) {
+func (repo inMemoryAccountRepo) Get(accountID vo.LongID) (Account, error) {
 	account, has := repo.accounts[accountID.Int64()]
 	if has {
 		return nil, errors.New("account not found")
@@ -30,7 +30,7 @@ func (repo inMemoryAccountRepo) Get(accountID model.LongID) (Account, error) {
 	return account, nil
 }
 
-func (repo inMemoryAccountRepo) FindByOwner(ownerID model.LongID) ([]Account, error) {
+func (repo inMemoryAccountRepo) FindByOwner(ownerID vo.LongID) ([]Account, error) {
 	accounts := []Account{}
 	for _, account := range repo.accounts {
 		if account.OwnerID().Equal(ownerID) {

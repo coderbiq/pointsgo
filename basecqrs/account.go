@@ -1,19 +1,20 @@
 package basecqrs
 
 import (
-	"github.com/coderbiq/dgo/model"
+	"github.com/coderbiq/dgo/base/devent"
+	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/pointsgo/common"
 )
 
 type account struct {
 	common.BaseAccount
-	events *model.EventRecorder
+	events *devent.EventRecorder
 }
 
 // RegisterAccount 为指定会员标识的会员注册一个新的积分账户
-func RegisterAccount(ownerID model.StringID) common.Account {
-	a := &account{events: model.NewEventRecorder(0)}
-	a.Identity = model.IDGenerator.LongID()
+func RegisterAccount(ownerID vo.StringID) common.Account {
+	a := &account{events: devent.NewEventRecorder(0)}
+	a.Identity = vo.IDGenerator.LongID()
 	a.OwnerIdentity = ownerID
 	a.events.RecordThan(common.OccurAccountCreated(a.Identity, ownerID))
 	return a

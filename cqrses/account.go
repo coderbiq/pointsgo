@@ -1,8 +1,9 @@
 package cqrses
 
 import (
+	"github.com/coderbiq/dgo/base/devent"
+	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/dgo/eventsourcing"
-	"github.com/coderbiq/dgo/model"
 	"github.com/coderbiq/pointsgo/common"
 )
 
@@ -12,7 +13,7 @@ type account struct {
 }
 
 // RegisterAccount 为指定会员标识的会员注册一个新的积分账户
-func RegisterAccount(ownerID model.StringID) common.Account {
+func RegisterAccount(ownerID vo.StringID) common.Account {
 	a := new(account)
 	a.events = eventsourcing.EventRecorderFromSourced(a, 0)
 	a.events.RecordThan(common.OccurAccountCreated(a.Identity, ownerID))
@@ -34,10 +35,10 @@ func (a *account) Consume(points common.Points) error {
 	return nil
 }
 
-func (a *account) Apply(event model.DomainEvent) {
+func (a *account) Apply(event devent.DomainEvent) {
 	switch e := event.(type) {
 	case common.AccountCreated:
-		a.Identity = e.AggregateID().(model.LongID)
+		a.Identity = e.AggregateID().(vo.LongID)
 		a.OwnerIdentity = e.OwnerID()
 		break
 	case common.AccountDeposited:

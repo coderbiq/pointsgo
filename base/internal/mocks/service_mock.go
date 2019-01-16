@@ -5,7 +5,8 @@
 package mocks
 
 import (
-	model "github.com/coderbiq/dgo/model"
+	devent "github.com/coderbiq/dgo/base/devent"
+	vo "github.com/coderbiq/dgo/base/vo"
 	base "github.com/coderbiq/pointsgo/base"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -106,9 +107,9 @@ func (mr *MockInfraMockRecorder) AccountRepo() *gomock.Call {
 }
 
 // EventBus mocks base method
-func (m *MockInfra) EventBus() model.EventPublisher {
+func (m *MockInfra) EventBus() devent.EventPublisher {
 	ret := m.ctrl.Call(m, "EventBus")
-	ret0, _ := ret[0].(model.EventPublisher)
+	ret0, _ := ret[0].(devent.EventPublisher)
 	return ret0
 }
 
@@ -251,7 +252,7 @@ func (m *MockAccountRepository) EXPECT() *MockAccountRepositoryMockRecorder {
 }
 
 // FindByOwner mocks base method
-func (m *MockAccountRepository) FindByOwner(arg0 model.LongID) ([]base.Account, error) {
+func (m *MockAccountRepository) FindByOwner(arg0 vo.LongID) ([]base.Account, error) {
 	ret := m.ctrl.Call(m, "FindByOwner", arg0)
 	ret0, _ := ret[0].([]base.Account)
 	ret1, _ := ret[1].(error)
@@ -264,7 +265,7 @@ func (mr *MockAccountRepositoryMockRecorder) FindByOwner(arg0 interface{}) *gomo
 }
 
 // Get mocks base method
-func (m *MockAccountRepository) Get(arg0 model.LongID) (base.Account, error) {
+func (m *MockAccountRepository) Get(arg0 vo.LongID) (base.Account, error) {
 	ret := m.ctrl.Call(m, "Get", arg0)
 	ret0, _ := ret[0].(base.Account)
 	ret1, _ := ret[1].(error)
