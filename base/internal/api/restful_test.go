@@ -15,10 +15,12 @@ func TestRestfulRegister(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	customerID := "testCustomerId"
+
 	register := mocks.NewMockRegisterService(ctrl)
-	register.EXPECT().Register(gomock.Any()).Return(int64(123), nil).Times(1)
+	register.EXPECT().Register(customerID).Return(int64(123), nil).Times(1)
 	services := mocks.NewMockAppServices(ctrl)
 	services.EXPECT().RegisterApp().Return(register)
 
-	suite.Run(t, app.NewRegisterRestfulTestSuite(api.WebService(services)))
+	suite.Run(t, app.NewRegisterRestfulTestSuite(api.WebService(services), customerID))
 }
