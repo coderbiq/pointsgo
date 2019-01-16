@@ -25,7 +25,7 @@ func (repo *inMemoryAccountRepo) Save(account model.Account) error {
 
 func (repo inMemoryAccountRepo) Get(accountID vo.LongID) (model.Account, error) {
 	account, has := repo.accounts[accountID.Int64()]
-	if has {
+	if !has {
 		return nil, errors.New("account not found")
 	}
 	return account, nil

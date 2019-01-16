@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/coderbiq/dgo/base/devent"
 
@@ -26,6 +28,17 @@ func main() {
 	// 注册一个积分账户
 	in := app.RegisterInput{CustomerId: "testCustomerId"}
 	data := post(app.RegisterRoute, in)
+
+	regOut := new(app.RegisterResult)
+	panicOrNil(json.Unmarshal(data, regOut))
+
+	// 为账户充值 100 积分
+	depURL := strings.Replace(app.DepositRoute, "{accountId}", strconv.FormatInt(regOut.AccountId, 10), 1)
+	depIn := app.DepositInput{
+		AccountId: regOut.AccountId,
+		Points:    uint32(100),
+	}
+	data = post(depURL, depIn)
 	fmt.Println(string(data))
 
 	cancel()
@@ -58,6 +71,12 @@ func printLogs(eventBus devent.EventBus) {
 			e := event.(common.AccountCreated)
 			fmt.Printf("新建积分账户：所属会员 %s 账户标识 %s \n",
 				e.OwnerID().String(), e.AggregateID().String())
+		}))
+	eventBus.Listen(common.AccountDepositedEvent,
+		devent.EventConsumerFunc(func(event devent.DomainEvent) {
+			e := event.(common.AccountDeposited)
+			fmt.Printf("积分账户充值：账户标识 %s 充值额度 %d \n",
+				e.AggregateID().String(), int(e.Points()))
 		}))
 }
 
