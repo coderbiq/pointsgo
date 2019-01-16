@@ -54,6 +54,27 @@ func WebService(services service.AppServices) *restful.WebService {
 			return nil
 		})))
 
+	ws.Route(ws.POST(app.ConsumeRoute).To(restHandler(
+		func(req *restful.Request, resp *restful.Response) error {
+			accountID, err := strconv.ParseInt(req.PathParameter("accountId"), 10, 0)
+			if err != nil {
+				return errors.New("请提供正确的积分账户标识")
+			}
+			input := new(app.ConsumeInput)
+			if err := req.ReadEntity(input); err != nil {
+				return errors.New("请求信息错误")
+			}
+			cur, consumed, err := services.ConsumeApp().Consume(accountID, uint(input.Points))
+			if err != nil {
+				return err
+			}
+			resp.WriteEntity(app.ConsumeResult{
+				CurPoints:      uint32(cur),
+				ConsumedPoints: uint32(consumed),
+			})
+			return nil
+		})))
+
 	return ws
 }
 

@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -33,7 +32,6 @@ func (suite *depositRestfulTestSuite) TestDeposit() {
 		"{accountId}",
 		strconv.FormatInt(suite.input.AccountId, 10),
 		1)
-	fmt.Println(url)
 	resp := suite.request(http.MethodPost, url, suite.input)
 	if !suite.Equal(http.StatusOK, resp.Code, resp.Body.String()) {
 		suite.FailNow("请求充值接口报错")
