@@ -7,8 +7,9 @@ import (
 )
 
 type infra struct {
-	repo     model.AccountRepository
-	eventBus devent.Bus
+	repo      model.AccountRepository
+	eventBus  devent.Bus
+	logStorer model.AccountLogStorer
 }
 
 // NewInfra 返回基础设施服务容器
@@ -28,4 +29,11 @@ func (i *infra) EventBus() devent.Bus {
 		i.eventBus = devent.SimpleBus(10)
 	}
 	return i.eventBus
+}
+
+func (i *infra) LogStorer() model.AccountLogStorer {
+	if i.logStorer == nil {
+		i.logStorer = NewAccountLogStorer()
+	}
+	return i.logStorer
 }

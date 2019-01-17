@@ -28,6 +28,12 @@ type AccountRepository interface {
 	FindByOwner(ownerID vo.LongID) ([]Account, error)
 }
 
+// AccountLogStorer 定义积分账户日志存储器
+type AccountLogStorer interface {
+	Append(log common.AccountLog)
+	Get(accountID vo.LongID) []common.AccountLog
+}
+
 type account struct {
 	common.BaseAccount
 	AccountReadModel

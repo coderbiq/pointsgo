@@ -59,6 +59,18 @@ func (mr *MockInfraMockRecorder) EventBus() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventBus", reflect.TypeOf((*MockInfra)(nil).EventBus))
 }
 
+// LogStorer mocks base method
+func (m *MockInfra) LogStorer() model.AccountLogStorer {
+	ret := m.ctrl.Call(m, "LogStorer")
+	ret0, _ := ret[0].(model.AccountLogStorer)
+	return ret0
+}
+
+// LogStorer indicates an expected call of LogStorer
+func (mr *MockInfraMockRecorder) LogStorer() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LogStorer", reflect.TypeOf((*MockInfra)(nil).LogStorer))
+}
+
 // MockAppServices is a mock of AppServices interface
 type MockAppServices struct {
 	ctrl     *gomock.Controller

@@ -3,7 +3,7 @@
 mockgen -destination model_mock.go \
    -package mocks \
    github.com/coderbiq/pointsgo/base/internal/model \
-   AccountRepository
+   AccountRepository,AccountLogStorer
 
 mockgen -destination service_mock.go \
    -package mocks \

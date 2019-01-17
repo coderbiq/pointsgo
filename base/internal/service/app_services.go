@@ -18,6 +18,7 @@ type (
 	Infra interface {
 		AccountRepo() model.AccountRepository
 		EventBus() devent.Bus
+		LogStorer() model.AccountLogStorer
 	}
 	// RegisterService 定义积分账户注册服务
 	RegisterService interface {
@@ -109,4 +110,16 @@ func (service consumeService) Consume(accountID int64, points uint) (uint, uint,
 	service.repo.Save(account)
 	account.(devent.Producer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.ConsumedPoints()), nil
+}
+
+// runAccountLogRecorder 启动积分账户日志记录器
+func runAccountLogRecorder(bus devent.Bus, storer model.AccountLogStorer) {
+	bus.AddRouter(devent.RegexRouter(map[string][]devent.Consumer{
+		"account.*": []devent.Consumer{
+			devent.ConsumerFunc(func(e devent.Event) {
+				log := common.AccountLogFromEvent(e)
+				storer.Append(log)
+			}),
+		},
+	}))
 }
