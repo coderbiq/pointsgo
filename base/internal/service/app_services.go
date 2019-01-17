@@ -13,6 +13,7 @@ type (
 		RegisterApp() RegisterService
 		DepositApp() DepositService
 		ConsumeApp() ConsumeService
+		RunTasks()
 	}
 	// Infra 定义基础设施服务容器
 	Infra interface {
@@ -64,6 +65,10 @@ func (ss *services) ConsumeApp() ConsumeService {
 		repo:     ss.infra.AccountRepo(),
 		eventBus: ss.infra.EventBus(),
 	}
+}
+
+func (ss *services) RunTasks() {
+	runAccountLogRecorder(ss.infra.EventBus(), ss.infra.LogStorer())
 }
 
 type registerService struct {

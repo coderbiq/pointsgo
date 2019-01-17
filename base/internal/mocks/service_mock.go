@@ -130,6 +130,16 @@ func (mr *MockAppServicesMockRecorder) RegisterApp() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterApp", reflect.TypeOf((*MockAppServices)(nil).RegisterApp))
 }
 
+// RunTasks mocks base method
+func (m *MockAppServices) RunTasks() {
+	m.ctrl.Call(m, "RunTasks")
+}
+
+// RunTasks indicates an expected call of RunTasks
+func (mr *MockAppServicesMockRecorder) RunTasks() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunTasks", reflect.TypeOf((*MockAppServices)(nil).RunTasks))
+}
+
 // MockRegisterService is a mock of RegisterService interface
 type MockRegisterService struct {
 	ctrl     *gomock.Controller

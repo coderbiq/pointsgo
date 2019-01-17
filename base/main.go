@@ -57,6 +57,8 @@ func init() {
 	printLogs(i.EventBus())
 
 	service := service.NewAppServices(i)
+	go service.RunTasks()
+
 	ws := api.WebService(service)
 	restful.Add(ws)
 	go func() {
