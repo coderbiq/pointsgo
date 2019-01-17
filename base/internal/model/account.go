@@ -31,12 +31,12 @@ type AccountRepository interface {
 type account struct {
 	common.BaseAccount
 	AccountReadModel
-	events *devent.EventRecorder
+	events *devent.Recorder
 }
 
 // RegisterAccount 为指定会员标识的会员注册一个新的积分账户
 func RegisterAccount(ownerID vo.StringID) Account {
-	a := &account{events: devent.NewEventRecorder(0)}
+	a := &account{events: devent.NewRecorder(0)}
 	a.Identity = vo.IDGenerator.LongID()
 	a.OwnerIdentity = ownerID
 	a.DepPoints = common.Points(0)
@@ -50,7 +50,7 @@ func RegisterAccount(ownerID vo.StringID) Account {
 // AccountFromData 根据原始数据重建积分账户模型
 // 资源库可以利用这个方法将从数据库获取到的数据还原为聚合模型
 func AccountFromData(data []byte, version uint) Account {
-	a := &account{events: devent.NewEventRecorder(version)}
+	a := &account{events: devent.NewRecorder(version)}
 	if err := json.Unmarshal(data, a); err != nil {
 		panic(errors.New("根据数据还原积分账户异常:" + err.Error()))
 	}
@@ -83,7 +83,7 @@ func (a *account) Version() uint {
 	return a.events.LastVersion()
 }
 
-func (a *account) CommitEvents(publishers ...devent.EventPublisher) {
+func (a *account) CommitEvents(publishers ...devent.Publisher) {
 	a.events.CommitToPublisher(publishers...)
 }
 

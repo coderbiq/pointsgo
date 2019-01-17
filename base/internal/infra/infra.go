@@ -8,7 +8,7 @@ import (
 
 type infra struct {
 	repo     model.AccountRepository
-	eventBus devent.EventBus
+	eventBus devent.Bus
 }
 
 // NewInfra 返回基础设施服务容器
@@ -23,9 +23,9 @@ func (i *infra) AccountRepo() model.AccountRepository {
 	return i.repo
 }
 
-func (i *infra) EventBus() devent.EventBus {
+func (i *infra) EventBus() devent.Bus {
 	if i.eventBus == nil {
-		i.eventBus = devent.SimpleEventBus(10)
+		i.eventBus = devent.SimpleBus(10)
 	}
 	return i.eventBus
 }

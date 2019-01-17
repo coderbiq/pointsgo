@@ -39,7 +39,7 @@ func (a *account) Consume(points common.Points) error {
 	return nil
 }
 
-func (a *account) Apply(event devent.DomainEvent) {
+func (a *account) Apply(event devent.Event) {
 	switch e := event.(type) {
 	case common.AccountCreated:
 		a.Identity = e.AggregateID().(vo.LongID)

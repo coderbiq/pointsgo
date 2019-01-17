@@ -8,12 +8,12 @@ import (
 
 type account struct {
 	common.BaseAccount
-	events *devent.EventRecorder
+	events *devent.Recorder
 }
 
 // RegisterAccount 为指定会员标识的会员注册一个新的积分账户
 func RegisterAccount(ownerID vo.StringID) common.Account {
-	a := &account{events: devent.NewEventRecorder(0)}
+	a := &account{events: devent.NewRecorder(0)}
 	a.Identity = vo.IDGenerator.LongID()
 	a.OwnerIdentity = ownerID
 	a.events.RecordThan(common.OccurAccountCreated(a.Identity, ownerID))

@@ -17,7 +17,7 @@ type (
 	// Infra 定义基础设施服务容器
 	Infra interface {
 		AccountRepo() model.AccountRepository
-		EventBus() devent.EventBus
+		EventBus() devent.Bus
 	}
 	// RegisterService 定义积分账户注册服务
 	RegisterService interface {
@@ -67,19 +67,19 @@ func (ss *services) ConsumeApp() ConsumeService {
 
 type registerService struct {
 	repo     model.AccountRepository
-	eventBus devent.EventPublisher
+	eventBus devent.Publisher
 }
 
 func (service registerService) Register(customerID string) (int64, error) {
 	account := model.RegisterAccount(vo.StringID(customerID))
 	service.repo.Save(account)
-	account.(devent.EventProducer).CommitEvents(service.eventBus)
+	account.(devent.Producer).CommitEvents(service.eventBus)
 	return account.ID().Int64(), nil
 }
 
 type depositService struct {
 	repo     model.AccountRepository
-	eventBus devent.EventPublisher
+	eventBus devent.Publisher
 }
 
 func (service depositService) Deposit(accountID int64, points uint) (uint, uint, error) {
@@ -89,13 +89,13 @@ func (service depositService) Deposit(accountID int64, points uint) (uint, uint,
 	}
 	account.Deposit(common.Points(points))
 	service.repo.Save(account)
-	account.(devent.EventProducer).CommitEvents(service.eventBus)
+	account.(devent.Producer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.DepositedPoints()), nil
 }
 
 type consumeService struct {
 	repo     model.AccountRepository
-	eventBus devent.EventPublisher
+	eventBus devent.Publisher
 }
 
 func (service consumeService) Consume(accountID int64, points uint) (uint, uint, error) {
@@ -107,6 +107,6 @@ func (service consumeService) Consume(accountID int64, points uint) (uint, uint,
 		return 0, 0, err
 	}
 	service.repo.Save(account)
-	account.(devent.EventProducer).CommitEvents(service.eventBus)
+	account.(devent.Producer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.ConsumedPoints()), nil
 }

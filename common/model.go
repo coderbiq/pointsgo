@@ -32,7 +32,7 @@ type (
 )
 
 // AccountLogFromEvent 根据积分账户的领域模型生成账户变更记录
-func AccountLogFromEvent(event devent.DomainEvent) AccountLog {
+func AccountLogFromEvent(event devent.Event) AccountLog {
 	switch e := event.(type) {
 	case AccountCreated:
 		return AccountActionLog{

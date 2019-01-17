@@ -32,7 +32,7 @@ func NewInMemoryAccountRepo() model.AccountRepository {
 
 func (repo *inMemoryAccountRepo) Save(account model.Account) error {
 	if po, has := repo.accounts[account.ID().Int64()]; has {
-		if po.version < account.Version() {
+		if po.version >= account.Version() {
 			panic(errors.New("并发冲突：希望存储的积分账户已不是最新版本"))
 		}
 	}

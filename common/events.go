@@ -19,17 +19,17 @@ const (
 type (
 	// AccountCreated 积分账户创建事件信息
 	AccountCreated interface {
-		devent.DomainEvent
+		devent.Event
 		OwnerID() vo.StringID
 	}
 	// AccountDeposited 积分账户充值事件信息
 	AccountDeposited interface {
-		devent.DomainEvent
+		devent.Event
 		Points() Points
 	}
 	// AccountConsumed 积分账户消费事件信息
 	AccountConsumed interface {
-		devent.DomainEvent
+		devent.Event
 		Points() Points
 	}
 )

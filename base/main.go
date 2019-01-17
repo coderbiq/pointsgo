@@ -68,25 +68,27 @@ type runner interface {
 	Run(context.Context)
 }
 
-func printLogs(eventBus devent.EventBus) {
-	eventBus.Listen(common.AccountCreatedEvent,
-		devent.EventConsumerFunc(func(event devent.DomainEvent) {
-			e := event.(common.AccountCreated)
-			fmt.Printf("新建积分账户：所属会员 %s 账户标识 %s \n",
-				e.OwnerID().String(), e.AggregateID().String())
-		}))
-	eventBus.Listen(common.AccountDepositedEvent,
-		devent.EventConsumerFunc(func(event devent.DomainEvent) {
-			e := event.(common.AccountDeposited)
-			fmt.Printf("积分账户充值：账户标识 %s 充值额度 %d \n",
-				e.AggregateID().String(), int(e.Points()))
-		}))
-	eventBus.Listen(common.AccountConsumedEvent,
-		devent.EventConsumerFunc(func(event devent.DomainEvent) {
-			e := event.(common.AccountConsumed)
-			fmt.Printf("积分消费：账户标识 %s 消费额度 %d \n",
-				e.AggregateID().String(), int(e.Points()))
-		}))
+func printLogs(eventBus devent.Bus) {
+	eventBus.AddRouter(devent.SimpleRouter(map[string][]devent.Consumer{
+		common.AccountDepositedEvent: []devent.Consumer{
+			devent.ConsumerFunc(func(event devent.Event) {
+				e := event.(common.AccountDeposited)
+				fmt.Printf("积分账户充值：账户标识 %s 充值额度 %d \n",
+					e.AggregateID().String(), int(e.Points()))
+			})},
+		common.AccountConsumedEvent: []devent.Consumer{
+			devent.ConsumerFunc(func(event devent.Event) {
+				e := event.(common.AccountConsumed)
+				fmt.Printf("积分消费：账户标识 %s 消费额度 %d \n",
+					e.AggregateID().String(), int(e.Points()))
+			})},
+		common.AccountCreatedEvent: []devent.Consumer{
+			devent.ConsumerFunc(func(event devent.Event) {
+				e := event.(common.AccountCreated)
+				fmt.Printf("新建积分账户：所属会员 %s 账户标识 %s \n",
+					e.OwnerID().String(), e.AggregateID().String())
+			})},
+	}))
 }
 
 func post(route string, d interface{}) []byte {

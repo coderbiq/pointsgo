@@ -14,4 +14,4 @@ mockgen -destination service_mock.go \
 mockgen -destination dgo_event.go \
    -package mocks \
    github.com/coderbiq/dgo/base/devent \
-   EventBus
+   Bus

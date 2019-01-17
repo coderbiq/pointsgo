@@ -23,7 +23,7 @@ func TestRegisterService(t *testing.T) {
 	repo.EXPECT().Save(gomock.Any()).Times(1).Do(func(account model.Account) {
 		assert.Equal(ownerId, account.OwnerID().String())
 	})
-	eventBus := mocks.NewMockEventBus(ctrl)
+	eventBus := mocks.NewMockBus(ctrl)
 	eventBus.EXPECT().Publish(gomock.Any()).Times(1).Do(func(event common.AccountCreated) {
 		assert.Equal(ownerId, event.OwnerID().String())
 		assert.NotEmpty(event.AggregateID())
