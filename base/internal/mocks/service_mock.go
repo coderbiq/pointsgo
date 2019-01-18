@@ -5,6 +5,7 @@
 package mocks
 
 import (
+	context "context"
 	devent "github.com/coderbiq/dgo/base/devent"
 	model "github.com/coderbiq/pointsgo/base/internal/model"
 	service "github.com/coderbiq/pointsgo/base/internal/service"
@@ -144,13 +145,13 @@ func (mr *MockAppServicesMockRecorder) RegisterApp() *gomock.Call {
 }
 
 // RunTasks mocks base method
-func (m *MockAppServices) RunTasks() {
-	m.ctrl.Call(m, "RunTasks")
+func (m *MockAppServices) RunTasks(arg0 context.Context) {
+	m.ctrl.Call(m, "RunTasks", arg0)
 }
 
 // RunTasks indicates an expected call of RunTasks
-func (mr *MockAppServicesMockRecorder) RunTasks() *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunTasks", reflect.TypeOf((*MockAppServices)(nil).RunTasks))
+func (mr *MockAppServicesMockRecorder) RunTasks(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunTasks", reflect.TypeOf((*MockAppServices)(nil).RunTasks), arg0)
 }
 
 // MockRegisterService is a mock of RegisterService interface
