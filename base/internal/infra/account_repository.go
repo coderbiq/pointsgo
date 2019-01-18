@@ -31,7 +31,7 @@ func NewInMemoryAccountRepo() model.AccountRepository {
 }
 
 func (repo *inMemoryAccountRepo) Save(account model.Account) error {
-	if po, has := repo.accounts[account.ID().Int64()]; has {
+	if po, has := repo.accounts[account.ID().(vo.LongID).Int64()]; has {
 		if po.version >= account.Version() {
 			panic(errors.New("并发冲突：希望存储的积分账户已不是最新版本"))
 		}
@@ -40,7 +40,7 @@ func (repo *inMemoryAccountRepo) Save(account model.Account) error {
 	if err != nil {
 		panic(errors.New("序列化积分账户异常：" + err.Error()))
 	}
-	repo.accounts[account.ID().Int64()] = accountPO{
+	repo.accounts[account.ID().(vo.LongID).Int64()] = accountPO{
 		ownerID: account.OwnerID().String(),
 		version: account.Version(),
 		data:    data,

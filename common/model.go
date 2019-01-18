@@ -14,8 +14,8 @@ type (
 
 	// Account 定义积分账户聚合基础的外观
 	Account interface {
-		ID() vo.LongID
-		OwnerID() vo.StringID
+		ID() vo.Identity
+		OwnerID() vo.Identity
 		Points() Points
 		Deposit(points Points)
 		Consume(points Points) error
@@ -104,12 +104,12 @@ type BaseAccount struct {
 }
 
 // ID 返回积分账户标识
-func (a BaseAccount) ID() vo.LongID {
+func (a BaseAccount) ID() vo.Identity {
 	return a.Identity
 }
 
 // OwnerID 返回积分账户所属的会员标识
-func (a BaseAccount) OwnerID() vo.StringID {
+func (a BaseAccount) OwnerID() vo.Identity {
 	return a.OwnerIdentity
 }
 

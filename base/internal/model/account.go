@@ -31,7 +31,7 @@ type AccountRepository interface {
 // AccountLogStorer 定义积分账户日志存储器
 type AccountLogStorer interface {
 	Append(log common.AccountLog)
-	Get(accountID vo.LongID) []common.AccountLog
+	Get(accountID vo.Identity) []common.AccountLog
 }
 
 type account struct {

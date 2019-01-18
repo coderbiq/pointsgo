@@ -94,7 +94,7 @@ func (service registerService) Register(customerID string) (int64, error) {
 	account := model.RegisterAccount(vo.StringID(customerID))
 	service.repo.Save(account)
 	account.(devent.Producer).CommitEvents(service.eventBus)
-	return account.ID().Int64(), nil
+	return account.ID().(vo.LongID).Int64(), nil
 }
 
 type depositService struct {
@@ -151,7 +151,7 @@ func (f finder) Detail(accountID int64) (common.AccountReader, error) {
 		})
 	}
 	reader := common.AccountReaderFromData(map[string]interface{}{
-		"id":        account.ID().Int64(),
+		"id":        account.ID().(vo.LongID).Int64(),
 		"ownerId":   account.OwnerID().String(),
 		"points":    uint(account.Points()),
 		"deposited": uint(account.DepositedPoints()),

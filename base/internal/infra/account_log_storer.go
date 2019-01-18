@@ -33,7 +33,7 @@ func (storer *accountLogStorer) Append(log common.AccountLog) {
 	storer.logs[log.AccountID().String()] = logs
 }
 
-func (storer *accountLogStorer) Get(accountID vo.LongID) []common.AccountLog {
+func (storer *accountLogStorer) Get(accountID vo.Identity) []common.AccountLog {
 	logs := []common.AccountLog{}
 	if datas, has := storer.logs[accountID.String()]; has {
 		for _, data := range datas {
