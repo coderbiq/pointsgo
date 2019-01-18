@@ -41,7 +41,6 @@ message FindResult {
 }
 
 message log {
-    int64 id = 1;
     string action = 2;
     string desc = 3;
     int64 created = 4;

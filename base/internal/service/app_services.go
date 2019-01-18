@@ -1,6 +1,8 @@
 package service
 
 import (
+	"context"
+
 	"github.com/coderbiq/dgo/base/devent"
 	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/pointsgo/base/internal/model"
@@ -13,7 +15,8 @@ type (
 		RegisterApp() RegisterService
 		DepositApp() DepositService
 		ConsumeApp() ConsumeService
-		RunTasks()
+		Finder() AccountFinder
+		RunTasks(context.Context)
 	}
 	// Infra 定义基础设施服务容器
 	Infra interface {
@@ -35,6 +38,10 @@ type (
 	ConsumeService interface {
 		// Consume 消费指定积分账户下的积分，成功返回消费后的可用积分和总消费积分
 		Consume(accountID int64, points uint) (curPoints, consumed uint, err error)
+	}
+	// AccountFinder 定义积分账户的查询服务
+	AccountFinder interface {
+		Detail(accountID int64) (common.AccountReader, error)
 	}
 )
 
@@ -67,7 +74,14 @@ func (ss *services) ConsumeApp() ConsumeService {
 	}
 }
 
-func (ss *services) RunTasks() {
+func (ss *services) Finder() AccountFinder {
+	return &finder{
+		repo:      ss.infra.AccountRepo(),
+		logStorer: ss.infra.LogStorer(),
+	}
+}
+
+func (ss *services) RunTasks(ctx context.Context) {
 	runAccountLogRecorder(ss.infra.EventBus(), ss.infra.LogStorer())
 }
 
@@ -115,6 +129,37 @@ func (service consumeService) Consume(accountID int64, points uint) (uint, uint,
 	service.repo.Save(account)
 	account.(devent.Producer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.ConsumedPoints()), nil
+}
+
+type finder struct {
+	repo      model.AccountRepository
+	logStorer model.AccountLogStorer
+}
+
+func (f finder) Detail(accountID int64) (common.AccountReader, error) {
+	account, err := f.repo.Get(vo.LongID(accountID))
+	if err != nil {
+		return common.AccountReader{}, err
+	}
+	logs := f.logStorer.Get(account.ID())
+	logData := []map[string]interface{}{}
+	for _, log := range logs {
+		logData = append(logData, map[string]interface{}{
+			"action":  log.Action(),
+			"desc":    log.Desc(),
+			"created": log.CreatedAt(),
+		})
+	}
+	reader := common.AccountReaderFromData(map[string]interface{}{
+		"id":        account.ID().Int64(),
+		"ownerId":   account.OwnerID().String(),
+		"points":    uint(account.Points()),
+		"deposited": uint(account.DepositedPoints()),
+		"consumed":  uint(account.ConsumedPoints()),
+		"logs":      logData,
+		"created":   account.CreatedAt(),
+	})
+	return reader, nil
 }
 
 // runAccountLogRecorder 启动积分账户日志记录器

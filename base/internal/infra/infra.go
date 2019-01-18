@@ -14,26 +14,21 @@ type infra struct {
 
 // NewInfra 返回基础设施服务容器
 func NewInfra() service.Infra {
-	return new(infra)
+	return &infra{
+		repo:      NewInMemoryAccountRepo(),
+		eventBus:  devent.SimpleBus(10),
+		logStorer: NewAccountLogStorer(),
+	}
 }
 
 func (i *infra) AccountRepo() model.AccountRepository {
-	if i.repo == nil {
-		i.repo = NewInMemoryAccountRepo()
-	}
 	return i.repo
 }
 
 func (i *infra) EventBus() devent.Bus {
-	if i.eventBus == nil {
-		i.eventBus = devent.SimpleBus(10)
-	}
 	return i.eventBus
 }
 
 func (i *infra) LogStorer() model.AccountLogStorer {
-	if i.logStorer == nil {
-		i.logStorer = NewAccountLogStorer()
-	}
 	return i.logStorer
 }

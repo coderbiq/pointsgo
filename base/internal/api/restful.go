@@ -75,6 +75,37 @@ func WebService(services service.AppServices) *restful.WebService {
 			return nil
 		})))
 
+	ws.Route(ws.GET(app.DetailRoute).To(restHandler(
+		func(req *restful.Request, resp *restful.Response) error {
+			accountID, err := strconv.ParseInt(req.PathParameter("accountId"), 10, 0)
+			if err != nil {
+				return errors.New("请提供正确的积分账户标识")
+			}
+			reader, err := services.Finder().Detail(accountID)
+			if err != nil {
+				resp.WriteError(http.StatusNotFound, err)
+				return nil
+			}
+			result := app.FindResult{
+				AccountId:  reader.ID(),
+				CustomerId: reader.OwnerID(),
+				Points:     uint32(reader.Points()),
+				Deposited:  uint32(reader.Deposited()),
+				Consumed:   uint32(reader.Consumed()),
+				Logs:       []*app.Log{},
+				Created:    reader.CreatedAt().Unix(),
+			}
+			for _, log := range reader.Logs() {
+				result.Logs = append(result.Logs, &app.Log{
+					Action:  log.Action(),
+					Desc:    log.Desc(),
+					Created: log.CreatedAt().Unix(),
+				})
+			}
+			resp.WriteEntity(result)
+			return nil
+		})))
+
 	return ws
 }
 

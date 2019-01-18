@@ -44,6 +44,23 @@ func main() {
 	conIn := app.ConsumeInput{AccountId: regOut.AccountId, Points: uint32(40)}
 	post(conURL, conIn)
 
+	detailURL := strings.Replace(app.DetailRoute, "{accountId}", strconv.FormatInt(regOut.AccountId, 10), 1)
+	data = get(detailURL)
+	detail := new(app.FindResult)
+	panicOrNil(json.Unmarshal(data, detail))
+
+	fmt.Print("\n\n-------------打印账户详情----------------------\n\n")
+	fmt.Println("账户标识：", detail.AccountId)
+	fmt.Println("所属会员：", detail.CustomerId)
+	fmt.Println("可用积分：", detail.Points)
+	fmt.Println("总充值积分：", detail.Deposited)
+	fmt.Println("总消费积分：", detail.Consumed)
+	fmt.Println("开通时间：", detail.Created)
+	fmt.Println("操作记录：")
+	for _, log := range detail.Logs {
+		fmt.Printf("	- [%d] %s %s \n", log.Created, log.Action, log.Desc)
+	}
+
 	cancel()
 }
 
@@ -52,12 +69,11 @@ func init() {
 	cancel = c
 
 	i := infra.NewInfra()
+	service := service.NewAppServices(i)
+	go service.RunTasks(ctx)
 
 	go i.EventBus().(runner).Run(ctx)
 	printLogs(i.EventBus())
-
-	service := service.NewAppServices(i)
-	go service.RunTasks()
 
 	ws := api.WebService(service)
 	restful.Add(ws)
@@ -91,6 +107,16 @@ func printLogs(eventBus devent.Bus) {
 					e.OwnerID().String(), e.AggregateID().String())
 			})},
 	}))
+}
+
+func get(route string) []byte {
+	resp, err := http.Get("http://localhost:8080" + route)
+	panicOrNil(err)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	panicOrNil(err)
+	return body
+
 }
 
 func post(route string, d interface{}) []byte {
