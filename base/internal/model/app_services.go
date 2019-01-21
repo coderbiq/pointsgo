@@ -1,11 +1,10 @@
-package service
+package model
 
 import (
 	"context"
 
 	"github.com/coderbiq/dgo/base/devent"
 	"github.com/coderbiq/dgo/base/vo"
-	"github.com/coderbiq/pointsgo/base/internal/model"
 	"github.com/coderbiq/pointsgo/common"
 )
 
@@ -17,12 +16,6 @@ type (
 		ConsumeApp() ConsumeService
 		Finder() AccountFinder
 		RunTasks(context.Context)
-	}
-	// Infra 定义基础设施服务容器
-	Infra interface {
-		AccountRepo() model.AccountRepository
-		EventBus() devent.Bus
-		LogStorer() model.AccountLogStorer
 	}
 	// RegisterService 定义积分账户注册服务
 	RegisterService interface {
@@ -86,19 +79,19 @@ func (ss *services) RunTasks(ctx context.Context) {
 }
 
 type registerService struct {
-	repo     model.AccountRepository
+	repo     AccountRepository
 	eventBus devent.Publisher
 }
 
 func (service registerService) Register(customerID string) (int64, error) {
-	account := model.RegisterAccount(vo.StringID(customerID))
+	account := RegisterAccount(vo.StringID(customerID))
 	service.repo.Save(account)
 	account.(devent.Producer).CommitEvents(service.eventBus)
 	return account.ID().(vo.LongID).Int64(), nil
 }
 
 type depositService struct {
-	repo     model.AccountRepository
+	repo     AccountRepository
 	eventBus devent.Publisher
 }
 
@@ -114,7 +107,7 @@ func (service depositService) Deposit(accountID int64, points uint) (uint, uint,
 }
 
 type consumeService struct {
-	repo     model.AccountRepository
+	repo     AccountRepository
 	eventBus devent.Publisher
 }
 
@@ -132,8 +125,8 @@ func (service consumeService) Consume(accountID int64, points uint) (uint, uint,
 }
 
 type finder struct {
-	repo      model.AccountRepository
-	logStorer model.AccountLogStorer
+	repo      AccountRepository
+	logStorer AccountLogStorer
 }
 
 func (f finder) Detail(accountID int64) (common.AccountReader, error) {
@@ -163,7 +156,7 @@ func (f finder) Detail(accountID int64) (common.AccountReader, error) {
 }
 
 // runAccountLogRecorder 启动积分账户日志记录器
-func runAccountLogRecorder(bus devent.Bus, storer model.AccountLogStorer) {
+func runAccountLogRecorder(bus devent.Bus, storer AccountLogStorer) {
 	bus.AddRouter(devent.RegexRouter(map[string][]devent.Consumer{
 		"account.*": []devent.Consumer{
 			devent.ConsumerFunc(func(e devent.Event) {

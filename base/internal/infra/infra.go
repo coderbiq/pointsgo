@@ -3,7 +3,6 @@ package infra
 import (
 	"github.com/coderbiq/dgo/base/devent"
 	"github.com/coderbiq/pointsgo/base/internal/model"
-	"github.com/coderbiq/pointsgo/base/internal/service"
 )
 
 type infra struct {
@@ -13,7 +12,7 @@ type infra struct {
 }
 
 // NewInfra 返回基础设施服务容器
-func NewInfra() service.Infra {
+func NewInfra() model.Infra {
 	return &infra{
 		repo:      NewInMemoryAccountRepo(),
 		eventBus:  devent.SimpleBus(10),

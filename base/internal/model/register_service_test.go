@@ -1,4 +1,4 @@
-package service_test
+package model_test
 
 import (
 	"testing"
@@ -7,7 +7,6 @@ import (
 
 	"github.com/coderbiq/pointsgo/base/internal/mocks"
 	"github.com/coderbiq/pointsgo/base/internal/model"
-	"github.com/coderbiq/pointsgo/base/internal/service"
 	"github.com/coderbiq/pointsgo/common"
 	"github.com/golang/mock/gomock"
 )
@@ -32,6 +31,6 @@ func TestRegisterService(t *testing.T) {
 	infra.EXPECT().AccountRepo().Return(repo)
 	infra.EXPECT().EventBus().Return(eventBus)
 
-	services := service.NewAppServices(infra)
+	services := model.NewAppServices(infra)
 	services.RegisterApp().Register(ownerId)
 }

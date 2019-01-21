@@ -15,7 +15,7 @@ import (
 	"github.com/coderbiq/pointsgo/app"
 	"github.com/coderbiq/pointsgo/base/internal/api"
 	"github.com/coderbiq/pointsgo/base/internal/infra"
-	"github.com/coderbiq/pointsgo/base/internal/service"
+	"github.com/coderbiq/pointsgo/base/internal/model"
 	"github.com/coderbiq/pointsgo/common"
 	"github.com/emicklei/go-restful"
 )
@@ -69,7 +69,7 @@ func init() {
 	cancel = c
 
 	i := infra.NewInfra()
-	service := service.NewAppServices(i)
+	service := model.NewAppServices(i)
 	go service.RunTasks(ctx)
 
 	go i.EventBus().(runner).Run(ctx)
