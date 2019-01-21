@@ -20,48 +20,82 @@ type accountPO struct {
 }
 
 type inMemoryAccountRepo struct {
-	accounts map[int64]accountPO
 }
 
 // NewInMemoryAccountRepo 创建积分账户资源库
 func NewInMemoryAccountRepo() model.AccountRepository {
-	return &inMemoryAccountRepo{
-		accounts: map[int64]accountPO{},
-	}
+	return new(inMemoryAccountRepo)
 }
 
 func (repo *inMemoryAccountRepo) Save(account model.Account) error {
-	if po, has := repo.accounts[account.ID().(vo.LongID).Int64()]; has {
-		if po.version >= account.Version() {
-			panic(errors.New("并发冲突：希望存储的积分账户已不是最新版本"))
-		}
+	if _, has := db.get(repo.accountKey(account.ID())); has {
+		return repo.update(account)
 	}
+	return repo.insert(account)
+}
+
+func (repo *inMemoryAccountRepo) update(account model.Account) error {
+	data, _ := db.get(repo.accountKey(account.ID()))
+	po := data.(accountPO)
+	if po.version >= account.Version() {
+		panic(errors.New("并发冲突：希望存储的积分账户已不是最新版本"))
+	}
+
+	accountData, err := json.Marshal(account)
+	if err != nil {
+		panic(errors.New("序列化积分账户异常：" + err.Error()))
+	}
+	po.data = accountData
+	po.version = account.Version()
+	db.set(repo.accountKey(account.ID()), po)
+	return nil
+}
+
+func (repo *inMemoryAccountRepo) insert(account model.Account) error {
+	ownerAccounts := []string{}
+	if data, has := db.get(repo.ownerKey(account.OwnerID())); has {
+		ownerAccounts = data.([]string)
+	}
+	ownerAccounts = append(ownerAccounts, repo.accountKey(account.ID()))
 	data, err := json.Marshal(account)
 	if err != nil {
 		panic(errors.New("序列化积分账户异常：" + err.Error()))
 	}
-	repo.accounts[account.ID().(vo.LongID).Int64()] = accountPO{
+	db.set(repo.accountKey(account.ID()), accountPO{
 		ownerID: account.OwnerID().String(),
 		version: account.Version(),
 		data:    data,
-	}
+	})
+	db.set(repo.ownerKey(account.OwnerID()), ownerAccounts)
 	return nil
 }
 
 func (repo inMemoryAccountRepo) Get(accountID vo.LongID) (model.Account, error) {
-	po, has := repo.accounts[accountID.Int64()]
-	if !has {
-		return nil, errors.New("没有找到指定标识的积分账户")
+	if data, has := db.get(repo.accountKey(accountID)); has {
+		po := data.(accountPO)
+		return model.AccountFromData(po.data, po.version), nil
 	}
-	return model.AccountFromData(po.data, po.version), nil
+	return nil, errors.New("没有找到指定标识的积分账户")
 }
 
 func (repo inMemoryAccountRepo) FindByOwner(ownerID vo.LongID) ([]model.Account, error) {
 	accounts := []model.Account{}
-	for _, po := range repo.accounts {
-		if ownerID.Equal(vo.StringID(po.ownerID)) {
+
+	if keys, has := db.get(repo.ownerKey(ownerID)); has {
+		accountKeys := keys.([]string)
+		for _, key := range accountKeys {
+			data, _ := db.get(key)
+			po := data.(accountPO)
 			accounts = append(accounts, model.AccountFromData(po.data, po.version))
 		}
 	}
-	return accounts, nil
+	return []model.Account{}, nil
+}
+
+func (repo inMemoryAccountRepo) accountKey(id vo.Identity) string {
+	return "account." + id.String()
+}
+
+func (repo inMemoryAccountRepo) ownerKey(id vo.Identity) string {
+	return "owner." + id.String() + ".accounts"
 }
