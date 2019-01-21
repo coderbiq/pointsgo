@@ -9,7 +9,7 @@ import (
 	"github.com/coderbiq/pointsgo/app"
 	"github.com/coderbiq/pointsgo/base/internal/api"
 	"github.com/coderbiq/pointsgo/base/internal/mocks"
-	"github.com/coderbiq/pointsgo/common"
+	"github.com/coderbiq/pointsgo/base/internal/model"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -98,7 +98,7 @@ func TestRestfulDetail(t *testing.T) {
 		"logs":      logDatas,
 		"created":   time.Now(),
 	}
-	reader := common.AccountReaderFromData(datas)
+	reader := model.AccountReaderFromData(datas)
 	result := app.FindResult{
 		AccountId:  reader.ID(),
 		CustomerId: reader.OwnerID(),

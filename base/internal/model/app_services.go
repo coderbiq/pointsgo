@@ -34,7 +34,7 @@ type (
 	}
 	// AccountFinder 定义积分账户的查询服务
 	AccountFinder interface {
-		Detail(accountID int64) (common.AccountReader, error)
+		Detail(accountID int64) (AccountReader, error)
 	}
 )
 
@@ -68,10 +68,7 @@ func (ss *services) ConsumeApp() ConsumeService {
 }
 
 func (ss *services) Finder() AccountFinder {
-	return &finder{
-		repo:      ss.infra.AccountRepo(),
-		logStorer: ss.infra.LogStorer(),
-	}
+	return ss.infra.Finder()
 }
 
 func (ss *services) RunTasks(ctx context.Context) {
@@ -122,37 +119,6 @@ func (service consumeService) Consume(accountID int64, points uint) (uint, uint,
 	service.repo.Save(account)
 	account.(devent.Producer).CommitEvents(service.eventBus)
 	return uint(account.Points()), uint(account.ConsumedPoints()), nil
-}
-
-type finder struct {
-	repo      AccountRepository
-	logStorer AccountLogStorer
-}
-
-func (f finder) Detail(accountID int64) (common.AccountReader, error) {
-	account, err := f.repo.Get(vo.LongID(accountID))
-	if err != nil {
-		return common.AccountReader{}, err
-	}
-	logs := f.logStorer.Get(account.ID())
-	logData := []map[string]interface{}{}
-	for _, log := range logs {
-		logData = append(logData, map[string]interface{}{
-			"action":  log.Action(),
-			"desc":    log.Desc(),
-			"created": log.CreatedAt(),
-		})
-	}
-	reader := common.AccountReaderFromData(map[string]interface{}{
-		"id":        account.ID().(vo.LongID).Int64(),
-		"ownerId":   account.OwnerID().String(),
-		"points":    uint(account.Points()),
-		"deposited": uint(account.DepositedPoints()),
-		"consumed":  uint(account.ConsumedPoints()),
-		"logs":      logData,
-		"created":   account.CreatedAt(),
-	})
-	return reader, nil
 }
 
 // runAccountLogRecorder 启动积分账户日志记录器

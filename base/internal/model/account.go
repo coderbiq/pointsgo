@@ -1,8 +1,6 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
 	"time"
 
 	"github.com/coderbiq/dgo/base/devent"
@@ -28,6 +26,18 @@ type AccountRepository interface {
 	FindByOwner(ownerID vo.LongID) ([]Account, error)
 }
 
+// AccountReader 定义积分账户的读取模型
+type AccountReader struct {
+	common.AccountReader
+}
+
+// AccountReaderFromData 根据路由创建账户读取器
+func AccountReaderFromData(datas map[string]interface{}) AccountReader {
+	return AccountReader{
+		AccountReader: common.AccountReaderFromData(datas),
+	}
+}
+
 type account struct {
 	common.BaseAccount
 	AccountReadModel
@@ -47,13 +57,17 @@ func RegisterAccount(ownerID vo.StringID) Account {
 	return a
 }
 
-// AccountFromData 根据原始数据重建积分账户模型
+// AccountFromDatas 根据原始数据重建积分账户模型
 // 资源库可以利用这个方法将从数据库获取到的数据还原为聚合模型
-func AccountFromData(data []byte, version uint) Account {
-	a := &account{events: devent.NewRecorder(version)}
-	if err := json.Unmarshal(data, a); err != nil {
-		panic(errors.New("根据数据还原积分账户异常:" + err.Error()))
-	}
+func AccountFromDatas(datas map[string]interface{}) Account {
+	a := &account{events: devent.NewRecorder(datas["version"].(uint))}
+	a.Identity = vo.LongID(datas["id"].(int64))
+	a.OwnerIdentity = vo.StringID(datas["ownerId"].(string))
+	a.CurPoints = common.Points(datas["points"].(uint))
+	a.DepPoints = common.Points(datas["deposited"].(uint))
+	a.ConPoints = common.Points(datas["consumed"].(uint))
+	a.Created = time.Unix(datas["created"].(int64), 0)
+	a.Updated = time.Unix(datas["updated"].(int64), 0)
 	return a
 }
 

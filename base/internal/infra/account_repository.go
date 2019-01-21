@@ -1,23 +1,11 @@
 package infra
 
 import (
-	"encoding/json"
 	"errors"
 
 	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/pointsgo/base/internal/model"
 )
-
-// accountPO 积分账户的持久化模型，持久化模型用于解决模型与持久化存储基础设施的关系。
-//
-// 持久化模型与领域模型并不一定是一对一映射，如果一个领域模型对应的是关系数据库里的多张表，
-// 并且持久化模型使用的是 ORM 实现，那么一个领域模型就可能对应多个持久化模型。在这种情况下资源
-// 库在进行持久化模型的读写的时候需要维护数据的事务一致性。
-type accountPO struct {
-	ownerID string
-	version uint
-	data    []byte
-}
 
 type inMemoryAccountRepo struct {
 }
@@ -27,53 +15,46 @@ func NewInMemoryAccountRepo() model.AccountRepository {
 	return new(inMemoryAccountRepo)
 }
 
-func (repo *inMemoryAccountRepo) Save(account model.Account) error {
-	if _, has := db.get(repo.accountKey(account.ID())); has {
+func (repo inMemoryAccountRepo) Save(account model.Account) error {
+	if _, has := db.get(accountKey(account.ID().String())); has {
 		return repo.update(account)
 	}
 	return repo.insert(account)
 }
 
-func (repo *inMemoryAccountRepo) update(account model.Account) error {
-	data, _ := db.get(repo.accountKey(account.ID()))
+func (repo inMemoryAccountRepo) update(account model.Account) error {
+	data, _ := db.get(accountKey(account.ID().String()))
 	po := data.(accountPO)
-	if po.version >= account.Version() {
+	if po.datas["version"].(uint) >= account.Version() {
 		panic(errors.New("并发冲突：希望存储的积分账户已不是最新版本"))
 	}
 
-	accountData, err := json.Marshal(account)
-	if err != nil {
-		panic(errors.New("序列化积分账户异常：" + err.Error()))
-	}
-	po.data = accountData
-	po.version = account.Version()
-	db.set(repo.accountKey(account.ID()), po)
+	repo.aggregateToPo(account, &po)
+	db.set(accountKey(account.ID().String()), po)
 	return nil
 }
 
-func (repo *inMemoryAccountRepo) insert(account model.Account) error {
+func (repo inMemoryAccountRepo) insert(account model.Account) error {
 	ownerAccounts := []string{}
-	if data, has := db.get(repo.ownerKey(account.OwnerID())); has {
+	if data, has := db.get(ownerKey(account.OwnerID().String())); has {
 		ownerAccounts = data.([]string)
 	}
-	ownerAccounts = append(ownerAccounts, repo.accountKey(account.ID()))
-	data, err := json.Marshal(account)
-	if err != nil {
-		panic(errors.New("序列化积分账户异常：" + err.Error()))
-	}
-	db.set(repo.accountKey(account.ID()), accountPO{
-		ownerID: account.OwnerID().String(),
-		version: account.Version(),
-		data:    data,
-	})
-	db.set(repo.ownerKey(account.OwnerID()), ownerAccounts)
+	ownerAccounts = append(ownerAccounts, accountKey(account.ID().String()))
+
+	po := accountPO{datas: make(map[string]interface{})}
+	repo.aggregateToPo(account, &po)
+	po.datas["id"] = account.ID().(vo.LongID).Int64()
+	po.datas["ownerId"] = account.OwnerID().String()
+	po.datas["created"] = account.CreatedAt().Unix()
+	db.set(accountKey(account.ID().String()), po)
+	db.set(ownerKey(account.OwnerID().String()), ownerAccounts)
 	return nil
 }
 
 func (repo inMemoryAccountRepo) Get(accountID vo.LongID) (model.Account, error) {
-	if data, has := db.get(repo.accountKey(accountID)); has {
+	if data, has := db.get(accountKey(accountID.String())); has {
 		po := data.(accountPO)
-		return model.AccountFromData(po.data, po.version), nil
+		return model.AccountFromDatas(po.datas), nil
 	}
 	return nil, errors.New("没有找到指定标识的积分账户")
 }
@@ -81,21 +62,21 @@ func (repo inMemoryAccountRepo) Get(accountID vo.LongID) (model.Account, error) 
 func (repo inMemoryAccountRepo) FindByOwner(ownerID vo.LongID) ([]model.Account, error) {
 	accounts := []model.Account{}
 
-	if keys, has := db.get(repo.ownerKey(ownerID)); has {
+	if keys, has := db.get(ownerKey(ownerID.String())); has {
 		accountKeys := keys.([]string)
 		for _, key := range accountKeys {
 			data, _ := db.get(key)
 			po := data.(accountPO)
-			accounts = append(accounts, model.AccountFromData(po.data, po.version))
+			accounts = append(accounts, model.AccountFromDatas(po.datas))
 		}
 	}
 	return []model.Account{}, nil
 }
 
-func (repo inMemoryAccountRepo) accountKey(id vo.Identity) string {
-	return "account." + id.String()
-}
-
-func (repo inMemoryAccountRepo) ownerKey(id vo.Identity) string {
-	return "owner." + id.String() + ".accounts"
+func (repo inMemoryAccountRepo) aggregateToPo(account model.Account, po *accountPO) {
+	po.datas["points"] = uint(account.Points())
+	po.datas["deposited"] = uint(account.DepositedPoints())
+	po.datas["consumed"] = uint(account.ConsumedPoints())
+	po.datas["updated"] = account.UpdatedAt().Unix()
+	po.datas["version"] = account.Version()
 }

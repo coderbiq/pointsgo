@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/coderbiq/dgo/base/vo"
+
 	"github.com/coderbiq/pointsgo/base/internal/model"
 	"github.com/stretchr/testify/suite"
 )
@@ -22,10 +24,14 @@ func (suite *accountRepositoryTestSuite) TestSave() {
 	suite.repo.Save(account)
 	fmt.Println(db)
 
-	_, hasAccount := db.get(suite.repo.accountKey(account.ID()))
+	_, hasAccount := db.get(accountKey(account.ID().String()))
 	suite.True(hasAccount)
-	_, hasOwner := db.get(suite.repo.ownerKey(account.OwnerID()))
+	_, hasOwner := db.get(ownerKey(account.OwnerID().String()))
 	suite.True(hasOwner)
+
+	account2, _ := suite.repo.Get(account.ID().(vo.LongID))
+	suite.Equal(account.ID(), account2.ID())
+	suite.Equal(account.Version(), account2.Version())
 }
 
 func TestAccountRepositorySuite(t *testing.T) {

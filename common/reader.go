@@ -50,7 +50,7 @@ func (reader AccountReader) Logs() []AccountLogReader {
 
 // CreatedAt 返回账户创建时间
 func (reader AccountReader) CreatedAt() time.Time {
-	return reader.datas["created"].(time.Time)
+	return time.Unix(reader.datas["created"].(int64), 0)
 }
 
 // AccountLogReader 账户日志数据读取器
@@ -70,5 +70,5 @@ func (reader AccountLogReader) Desc() string {
 
 // CreatedAt 返回创建时间
 func (reader AccountLogReader) CreatedAt() time.Time {
-	return reader.data["created"].(time.Time)
+	return time.Unix(reader.data["created"].(int64), 0)
 }

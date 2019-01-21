@@ -12,6 +12,7 @@ type (
 		AccountRepo() AccountRepository
 		EventBus() devent.Bus
 		LogStorer() AccountLogStorer
+		Finder() AccountFinder
 	}
 
 	// AccountLogStorer 定义积分账户日志存储器

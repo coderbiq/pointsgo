@@ -167,6 +167,18 @@ func (mr *MockInfraMockRecorder) EventBus() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "EventBus", reflect.TypeOf((*MockInfra)(nil).EventBus))
 }
 
+// Finder mocks base method
+func (m *MockInfra) Finder() model.AccountFinder {
+	ret := m.ctrl.Call(m, "Finder")
+	ret0, _ := ret[0].(model.AccountFinder)
+	return ret0
+}
+
+// Finder indicates an expected call of Finder
+func (mr *MockInfraMockRecorder) Finder() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Finder", reflect.TypeOf((*MockInfra)(nil).Finder))
+}
+
 // LogStorer mocks base method
 func (m *MockInfra) LogStorer() model.AccountLogStorer {
 	ret := m.ctrl.Call(m, "LogStorer")
@@ -394,9 +406,9 @@ func (m *MockAccountFinder) EXPECT() *MockAccountFinderMockRecorder {
 }
 
 // Detail mocks base method
-func (m *MockAccountFinder) Detail(arg0 int64) (common.AccountReader, error) {
+func (m *MockAccountFinder) Detail(arg0 int64) (model.AccountReader, error) {
 	ret := m.ctrl.Call(m, "Detail", arg0)
-	ret0, _ := ret[0].(common.AccountReader)
+	ret0, _ := ret[0].(model.AccountReader)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

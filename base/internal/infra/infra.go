@@ -6,28 +6,28 @@ import (
 )
 
 type infra struct {
-	repo      model.AccountRepository
-	eventBus  devent.Bus
-	logStorer model.AccountLogStorer
+	eventBus devent.Bus
 }
 
 // NewInfra 返回基础设施服务容器
 func NewInfra() model.Infra {
 	return &infra{
-		repo:      NewInMemoryAccountRepo(),
-		eventBus:  devent.SimpleBus(10),
-		logStorer: NewAccountLogStorer(),
+		eventBus: devent.SimpleBus(5),
 	}
 }
 
-func (i *infra) AccountRepo() model.AccountRepository {
-	return i.repo
+func (i infra) AccountRepo() model.AccountRepository {
+	return inMemoryAccountRepo{}
 }
 
-func (i *infra) EventBus() devent.Bus {
+func (i infra) EventBus() devent.Bus {
 	return i.eventBus
 }
 
-func (i *infra) LogStorer() model.AccountLogStorer {
-	return i.logStorer
+func (i infra) LogStorer() model.AccountLogStorer {
+	return accountLogStorer{}
+}
+
+func (i infra) Finder() model.AccountFinder {
+	return accountFinder{}
 }

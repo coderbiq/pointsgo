@@ -1,8 +1,8 @@
 package infra
 
 import (
-	"encoding/json"
 	"errors"
+	"time"
 
 	"github.com/coderbiq/dgo/base/vo"
 	"github.com/coderbiq/pointsgo/base/internal/model"
@@ -17,34 +17,38 @@ func NewAccountLogStorer() model.AccountLogStorer {
 	return new(accountLogStorer)
 }
 
-func (storer *accountLogStorer) Append(log common.AccountLog) {
-	logs := [][]byte{}
-	if data, has := db.get(storer.key(log.AccountID())); has {
-		logs = data.([][]byte)
+func (storer accountLogStorer) Append(log common.AccountLog) {
+	data, has := db.get(accountKey(log.AccountID().String()))
+	if !has {
+		panic(errors.New("添加账户日志异常：没有找到指定账户"))
 	}
-	data, err := json.Marshal(log)
-	if err != nil {
-		panic(errors.New("序列化积分日志异常： " + err.Error()))
-	}
-	logs = append(logs, data)
-	db.set(storer.key(log.AccountID()), logs)
+	po := data.(accountPO)
+	po.logs = append(po.logs, map[string]interface{}{
+		"id":        log.ID().(vo.LongID).Int64(),
+		"accountId": log.AccountID().(vo.LongID).Int64(),
+		"action":    log.Action(),
+		"desc":      log.Desc(),
+		"created":   log.CreatedAt().Unix(),
+	})
+	db.set(accountKey(log.AccountID().String()), po)
 }
 
-func (storer *accountLogStorer) Get(accountID vo.Identity) []common.AccountLog {
+func (storer accountLogStorer) Get(accountID vo.Identity) []common.AccountLog {
 	logs := []common.AccountLog{}
-	if datas, has := db.get(storer.key(accountID)); has {
-		bytes := datas.([][]byte)
-		for _, data := range bytes {
-			log := new(common.AccountActionLog)
-			if err := json.Unmarshal(data, log); err != nil {
-				panic(errors.New("解析积分日志异常：" + err.Error()))
-			}
-			logs = append(logs, log)
-		}
+
+	data, has := db.get(accountKey(accountID.String()))
+	if !has {
+		return logs
+	}
+	po := data.(accountPO)
+	for _, log := range po.logs {
+		logs = append(logs, common.AccountActionLog{
+			Identity:        vo.LongID(log["id"].(int64)),
+			AccountIdentity: vo.LongID(log["accountId"].(int64)),
+			ActionName:      log["action"].(string),
+			Describe:        log["desc"].(string),
+			Created:         time.Unix(log["created"].(int64), 0),
+		})
 	}
 	return logs
-}
-
-func (storer *accountLogStorer) key(accountID vo.Identity) string {
-	return "account." + accountID.String() + ".logs"
 }
