@@ -1,8 +1,8 @@
-以一个简化的业务模型探索 DDD 战术模型的代码实现。
+以一个简化的业务模型探索、实践 DDD 战术模型的代码实现。
 
 ## 业务模型
 
-用于探索实现的业务模型是一个积分账户管理的业务，业务模型如下：
+用于实践的业务模型是一个简化的积分账户管理的业务，包含以下业务：
 
 ### 开通积分账户
 
@@ -35,19 +35,9 @@
     * 操作名称
     * 操作描述
 
+## 实践内容
 
-## 探索一: 只使用 DDD
-
-在 base 目录的实现，只使用 OO 和 DDD 的思想探索如何实现 DDD 的战术模型。
-
-## 探索二： DDD + CQRS
-
-basecqrs 目录的实现，在探索一的基础上增加 CQRS 的应用。
-
-## 探索三: DDD + EventSourcing
-
-basees 目录的实现，在探索一的基础上增加 EventSourcing 的应用。
-
-## 控制四: DDD + CQRS + EventSourcing
-
-cqrses 目录的实现，同时使用 CQRS, EventSourcing 的应用。
+1. [base](base) 只使用 DDD 的基本方法进行实现。
+2. [basecqrs](basecqrs) 使用 DDD + CQRS 的方法进行实现。
+3. [basees](basees) 使用 DDD + EventSourcing 的方法进行实现。
+4. [cqrses] 使用 DDD + CQRS + EventSourcing 的方法进行实现。
