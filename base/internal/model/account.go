@@ -25,18 +25,6 @@ type AccountRepository interface {
 	Get(accountID vo.LongID) (Account, error)
 }
 
-// AccountReader 定义积分账户的读取模型
-type AccountReader struct {
-	common.AccountReader
-}
-
-// AccountReaderFromData 根据路由创建账户读取器
-func AccountReaderFromData(datas map[string]interface{}) AccountReader {
-	return AccountReader{
-		AccountReader: common.AccountReaderFromData(datas),
-	}
-}
-
 type account struct {
 	common.BaseAccount
 	AccountReadModel
