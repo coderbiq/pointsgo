@@ -1,6 +1,7 @@
 package api_test
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/coderbiq/pointsgo/app"
 	"github.com/coderbiq/pointsgo/base/internal/api"
 	"github.com/coderbiq/pointsgo/base/internal/mocks"
-	"github.com/coderbiq/pointsgo/base/internal/model"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -77,49 +77,31 @@ func TestRestfulConsume(t *testing.T) {
 	))
 }
 
-func TestRestfulDetail(t *testing.T) {
+func TestRestfulGetDetail(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
 	accountID := int64(123)
-	logDatas := []map[string]interface{}{
-		map[string]interface{}{
-			"action":  "created",
-			"desc":    "会员创建了账户",
-			"created": time.Now(),
-		},
-	}
+	fields := []string{"id", "ownerId", "points", "log.action", "log.desc", "log.created"}
 	datas := map[string]interface{}{
-		"id":        accountID,
-		"ownerId":   "testCustomerId",
-		"points":    uint(100),
-		"deposited": uint(200),
-		"consumed":  uint(150),
-		"logs":      logDatas,
-		"created":   time.Now(),
-	}
-	reader := model.AccountReaderFromData(datas)
-	result := app.FindResult{
-		AccountId:  reader.ID(),
-		CustomerId: reader.OwnerID(),
-		Points:     uint32(reader.Points()),
-		Deposited:  uint32(reader.Deposited()),
-		Consumed:   uint32(reader.Consumed()),
-		Logs: []*app.Log{
-			&app.Log{
-				Action:  reader.Logs()[0].Action(),
-				Desc:    reader.Logs()[0].Desc(),
-				Created: reader.Logs()[0].CreatedAt().Unix(),
+		"id":      accountID,
+		"ownerId": "testCustomerId",
+		"points":  uint(100),
+		"logs": []map[string]interface{}{
+			map[string]interface{}{
+				"action":  "created",
+				"desc":    "会员创建了账户",
+				"created": time.Now(),
 			},
 		},
-		Created: reader.CreatedAt().Unix(),
 	}
+	result, _ := json.Marshal(datas)
 
 	finder := mocks.NewMockAccountFinder(ctrl)
-	finder.EXPECT().Detail(accountID).Return(reader, nil).Times(1)
+	finder.EXPECT().ByID(accountID, fields).Return(datas, nil).Times(1)
 	service := mocks.NewMockAppServices(ctrl)
 	service.EXPECT().Finder().Return(finder)
 
 	suite.Run(t, app.NewDetailRestfulTestSuite(
-		api.WebService(service), accountID, result))
+		api.WebService(service), accountID, fields, string(result)))
 }

@@ -34,7 +34,8 @@ type (
 	}
 	// AccountFinder 定义积分账户的查询服务
 	AccountFinder interface {
-		Detail(accountID int64) (AccountReader, error)
+		ByID(accountID int64, fields []string) (map[string]interface{}, error)
+		ByOwnerID(ownerID string, fields []string) ([]map[string]interface{}, error)
 	}
 )
 

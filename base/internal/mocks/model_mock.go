@@ -37,19 +37,6 @@ func (m *MockAccountRepository) EXPECT() *MockAccountRepositoryMockRecorder {
 	return m.recorder
 }
 
-// FindByOwner mocks base method
-func (m *MockAccountRepository) FindByOwner(arg0 vo.LongID) ([]model.Account, error) {
-	ret := m.ctrl.Call(m, "FindByOwner", arg0)
-	ret0, _ := ret[0].([]model.Account)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// FindByOwner indicates an expected call of FindByOwner
-func (mr *MockAccountRepositoryMockRecorder) FindByOwner(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByOwner", reflect.TypeOf((*MockAccountRepository)(nil).FindByOwner), arg0)
-}
-
 // Get mocks base method
 func (m *MockAccountRepository) Get(arg0 vo.LongID) (model.Account, error) {
 	ret := m.ctrl.Call(m, "Get", arg0)
@@ -405,15 +392,28 @@ func (m *MockAccountFinder) EXPECT() *MockAccountFinderMockRecorder {
 	return m.recorder
 }
 
-// Detail mocks base method
-func (m *MockAccountFinder) Detail(arg0 int64) (model.AccountReader, error) {
-	ret := m.ctrl.Call(m, "Detail", arg0)
-	ret0, _ := ret[0].(model.AccountReader)
+// ByID mocks base method
+func (m *MockAccountFinder) ByID(arg0 int64, arg1 []string) (map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "ByID", arg0, arg1)
+	ret0, _ := ret[0].(map[string]interface{})
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Detail indicates an expected call of Detail
-func (mr *MockAccountFinderMockRecorder) Detail(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Detail", reflect.TypeOf((*MockAccountFinder)(nil).Detail), arg0)
+// ByID indicates an expected call of ByID
+func (mr *MockAccountFinderMockRecorder) ByID(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByID", reflect.TypeOf((*MockAccountFinder)(nil).ByID), arg0, arg1)
+}
+
+// ByOwnerID mocks base method
+func (m *MockAccountFinder) ByOwnerID(arg0 string, arg1 []string) ([]map[string]interface{}, error) {
+	ret := m.ctrl.Call(m, "ByOwnerID", arg0, arg1)
+	ret0, _ := ret[0].([]map[string]interface{})
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ByOwnerID indicates an expected call of ByOwnerID
+func (mr *MockAccountFinderMockRecorder) ByOwnerID(arg0, arg1 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ByOwnerID", reflect.TypeOf((*MockAccountFinder)(nil).ByOwnerID), arg0, arg1)
 }

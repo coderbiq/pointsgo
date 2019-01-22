@@ -4,32 +4,36 @@ import (
 	"errors"
 	"regexp"
 	"strconv"
-
-	"github.com/coderbiq/pointsgo/base/internal/model"
 )
 
 type accountFinder struct {
 }
 
-func (finder accountFinder) Detail(accountID int64) (model.AccountReader, error) {
-	if accountData, has := db.get(accountKey(strconv.FormatInt(accountID, 10))); has {
-		po := accountData.(accountPO)
-		datas := po.datas
-		datas["logs"] = po.logs
-		return model.AccountReaderFromData(datas), nil
-	}
-
-	return model.AccountReader{}, nil
+func (finder accountFinder) ByID(accountID int64, fields []string) (map[string]interface{}, error) {
+	return finder.byKey(accountKey(strconv.FormatInt(accountID, 10)), fields)
 }
 
-func (finder accountFinder) ByID(accountID int64, fields []string) (map[string]interface{}, error) {
+func (finder accountFinder) ByOwnerID(ownerID string, fields []string) ([]map[string]interface{}, error) {
+	accounts := []map[string]interface{}{}
+	if data, has := db.get(ownerKey(ownerID)); has {
+		keys := data.([]string)
+		for _, key := range keys {
+			if account, err := finder.byKey(key, fields); err == nil {
+				accounts = append(accounts, account)
+			}
+		}
+	}
+	return accounts, nil
+}
+
+func (finder accountFinder) byKey(key string, fields []string) (map[string]interface{}, error) {
 	datas := make(map[string]interface{})
-	if adatas, has := db.get(accountKey(strconv.FormatInt(accountID, 10))); has {
+	if adatas, has := db.get(key); has {
 		po := adatas.(accountPO)
 		logFields := []string{}
 		for _, field := range fields {
-			if matched, err := regexp.MatchString("logs.*", field); err == nil && matched {
-				logFields = append(logFields, field[5:])
+			if matched, err := regexp.MatchString("log.*", field); err == nil && matched {
+				logFields = append(logFields, field[4:])
 			} else {
 				if v, has := po.datas[field]; has {
 					datas[field] = v

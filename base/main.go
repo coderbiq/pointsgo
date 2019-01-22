@@ -45,20 +45,30 @@ func main() {
 	post(conURL, conIn)
 
 	detailURL := strings.Replace(app.DetailRoute, "{accountId}", strconv.FormatInt(regOut.AccountId, 10), 1)
+	detailURL = detailURL + "?fields=" + strings.Join([]string{
+		"id", "ownerId", "points", "deposited", "consumed", "created",
+		"log.created", "log.action", "log.desc"}, ",")
 	data = get(detailURL)
-	detail := new(app.FindResult)
-	panicOrNil(json.Unmarshal(data, detail))
+	detail := map[string]interface{}{}
+	d := json.NewDecoder(bytes.NewBuffer(data))
+	d.UseNumber()
+	panicOrNil(d.Decode(&detail))
 
 	fmt.Print("\n\n-------------打印账户详情----------------------\n\n")
-	fmt.Println("账户标识：", detail.AccountId)
-	fmt.Println("所属会员：", detail.CustomerId)
-	fmt.Println("可用积分：", detail.Points)
-	fmt.Println("总充值积分：", detail.Deposited)
-	fmt.Println("总消费积分：", detail.Consumed)
-	fmt.Println("开通时间：", detail.Created)
+	fmt.Println("账户标识：", detail["id"])
+	fmt.Println("所属会员：", detail["ownerId"])
+	fmt.Println("可用积分：", detail["points"])
+	fmt.Println("总充值积分：", detail["deposited"])
+	fmt.Println("总消费积分：", detail["consumed"])
+	fmt.Println("开通时间：", detail["created"])
 	fmt.Println("操作记录：")
-	for _, log := range detail.Logs {
-		fmt.Printf("	- [%d] %s %s \n", log.Created, log.Action, log.Desc)
+	logDatas := detail["logs"].([]interface{})
+	for _, data := range logDatas {
+		log := data.(map[string]interface{})
+		fmt.Printf("	- [%s] %s %s \n",
+			log["created"].(json.Number),
+			log["action"],
+			log["desc"])
 	}
 
 	cancel()

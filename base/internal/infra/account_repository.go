@@ -59,20 +59,6 @@ func (repo inMemoryAccountRepo) Get(accountID vo.LongID) (model.Account, error) 
 	return nil, errors.New("没有找到指定标识的积分账户")
 }
 
-func (repo inMemoryAccountRepo) FindByOwner(ownerID vo.LongID) ([]model.Account, error) {
-	accounts := []model.Account{}
-
-	if keys, has := db.get(ownerKey(ownerID.String())); has {
-		accountKeys := keys.([]string)
-		for _, key := range accountKeys {
-			data, _ := db.get(key)
-			po := data.(accountPO)
-			accounts = append(accounts, model.AccountFromDatas(po.datas))
-		}
-	}
-	return []model.Account{}, nil
-}
-
 func (repo inMemoryAccountRepo) aggregateToPo(account model.Account, po *accountPO) {
 	po.datas["points"] = uint(account.Points())
 	po.datas["deposited"] = uint(account.DepositedPoints())

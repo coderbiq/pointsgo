@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/coderbiq/pointsgo/app"
 	"github.com/coderbiq/pointsgo/base/internal/model"
@@ -81,26 +82,12 @@ func WebService(services model.AppServices) *restful.WebService {
 			if err != nil {
 				return errors.New("请提供正确的积分账户标识")
 			}
-			reader, err := services.Finder().Detail(accountID)
+			fields := strings.Split(req.QueryParameter("fields"), ",")
+
+			result, err := services.Finder().ByID(accountID, fields)
 			if err != nil {
 				resp.WriteError(http.StatusNotFound, err)
 				return nil
-			}
-			result := app.FindResult{
-				AccountId:  reader.ID(),
-				CustomerId: reader.OwnerID(),
-				Points:     uint32(reader.Points()),
-				Deposited:  uint32(reader.Deposited()),
-				Consumed:   uint32(reader.Consumed()),
-				Logs:       []*app.Log{},
-				Created:    reader.CreatedAt().Unix(),
-			}
-			for _, log := range reader.Logs() {
-				result.Logs = append(result.Logs, &app.Log{
-					Action:  log.Action(),
-					Desc:    log.Desc(),
-					Created: log.CreatedAt().Unix(),
-				})
 			}
 			resp.WriteEntity(result)
 			return nil

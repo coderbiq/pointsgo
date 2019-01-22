@@ -23,7 +23,6 @@ type Account interface {
 type AccountRepository interface {
 	Save(account Account) error
 	Get(accountID vo.LongID) (Account, error)
-	FindByOwner(ownerID vo.LongID) ([]Account, error)
 }
 
 // AccountReader 定义积分账户的读取模型
